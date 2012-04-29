@@ -12,7 +12,16 @@ Build-type:          Simple
 Cabal-version:       >=1.2
 
 Library
-  Exposed-modules:    Sound.Pulse.Monad Sound.Pulse.Async 
+  Include-dirs:       /usr/local/include
+  Extra-lib-dirs:     /usr/local/lib
+  Exposed-modules:    Sound.Pulse.Monad 
+                      Sound.Pulse.Async 
+                      Sound.Pulse.Internal 
+  Other-modules:      Sound.Pulse.Internal.Def
+                      Sound.Pulse.Internal.ChannelMap
+                      Sound.Pulse.Internal.Sample
+                      Sound.Pulse.Internal.Volume
+                      Sound.Pulse.Internal.C2HS
   Build-depends:      base>=3
   Build-tools:        c2hs 
   
