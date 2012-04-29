@@ -12,8 +12,10 @@ Build-type:          Simple
 Cabal-version:       >=1.2
 
 Library
-  Include-dirs:       /usr/local/include
+  Include-dirs:       /usr/local/include 
+                      /usr/include
   Extra-lib-dirs:     /usr/local/lib
+                      /usr/lib
   Exposed-modules:    Sound.Pulse.Monad 
                       Sound.Pulse.Async 
                       Sound.Pulse.Internal 
