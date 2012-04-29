@@ -14,5 +14,11 @@ Cabal-version:       >=1.2
 Library
   Exposed-modules:    Sound.Pulse
   Build-depends:      base>=3
-  Build-tools:        c2hs 
-  
+  Build-tools:        c2hs
+
+Test-Suite            test-pulse
+  type:               exitcode-stdio-1.0
+  main-is:            tests/Test.hs
+  ghc-options: -threaded
+  build-depends: base>=3
+               , QuickCheck
