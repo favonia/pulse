@@ -1,6 +1,8 @@
 module Sound.Pulse.Internal (
     module Sound.Pulse.Internal.Def
+    ,
     module Sound.Pulse.Internal.ChannelMap
+    ,
     module Sound.Pulse.Internal.Sample
     {-module Sound.Pulse.Internal.Volume-}
 ) where

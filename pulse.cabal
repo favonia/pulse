@@ -18,12 +18,12 @@ Library
                       /usr/lib
   Exposed-modules:    Sound.Pulse.Monad 
                       Sound.Pulse.Internal 
-  Other-modules:      Sound.Pulse.Internal.Def
+                      Sound.Pulse.Internal.Def
                       Sound.Pulse.Internal.ChannelMap
                       Sound.Pulse.Internal.Sample
-                      Sound.Pulse.Internal.Volume
+  Other-modules:      Sound.Pulse.Internal.Volume
                       Sound.Pulse.Internal.C2HS
-  Build-depends:      base>=3, pulse
+  Build-depends:      base>=3
   Build-tools:        c2hs
 
 Test-Suite            test-pulse
@@ -31,4 +31,5 @@ Test-Suite            test-pulse
   main-is:            tests/Test.hs
   ghc-options: -threaded
   build-depends: base>=3
+               , pulse
                , QuickCheck

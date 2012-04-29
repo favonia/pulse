@@ -19,7 +19,7 @@ cFloatConv = realToFrac
 cFromBool :: Num a => Bool -> a
 cFromBool = fromBool
 
-cToBool :: Num a => a -> Bool
+cToBool :: (Eq a, Num a) => a -> Bool
 cToBool = toBool
 
 cToEnum :: (Integral i, Enum e) => i -> e
