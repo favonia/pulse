@@ -1,6 +1,6 @@
 Name:                pulse
 Version:             0.0.0.0
-Synopsis:            Haskell binding for the PulseAudio library
+Synopsis:            Haskell binding to PulseAudio
 Homepage:            http://favonia.github.com/pulse/
 License:             BSD3
 License-file:        LICENSE
@@ -23,5 +23,11 @@ Library
                       Sound.Pulse.Internal.Volume
                       Sound.Pulse.Internal.C2HS
   Build-depends:      base>=3
-  Build-tools:        c2hs 
-  
+  Build-tools:        c2hs
+
+Test-Suite            test-pulse
+  type:               exitcode-stdio-1.0
+  main-is:            tests/Test.hs
+  ghc-options: -threaded
+  build-depends: base>=3
+               , QuickCheck
