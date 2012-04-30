@@ -12,8 +12,8 @@ Build-type:          Simple
 Cabal-version:       >=1.8
 
 Library
-    PkgConfig-depends:
-        libpulse == 1.1.*
+    Pkgconfig-depends:
+        libpulse >= 1.0 && < 1.2
     Exposed-modules:
         Sound.Pulse.Monad
         Sound.Pulse.Internal
