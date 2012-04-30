@@ -23,7 +23,8 @@ Library
                       Sound.Pulse.Internal.Sample
   Other-modules:      Sound.Pulse.Internal.Volume
                       Sound.Pulse.Internal.C2HS
-  Build-depends:      base>=3
+  Build-depends:      base >= 3 && < 5,
+                      mtl >= 2 && < 3
   Build-tools:        c2hs
 
 Test-Suite            test-pulse
@@ -32,4 +33,5 @@ Test-Suite            test-pulse
   ghc-options: -threaded
   build-depends: base>=3
                , pulse
+               , mtl
                , QuickCheck
