@@ -1,5 +1,7 @@
 {-# LANGUAGE ForeignFunctionInterface, EmptyDataDecls #-}
 
+{#context prefix = "pa"#}
+
 module Sound.Pulse.Internal.Def where
 
 import Foreign.Storable
