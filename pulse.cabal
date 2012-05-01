@@ -4,8 +4,8 @@ Synopsis:            Haskell binding to PulseAudio
 Homepage:            http://favonia.github.com/pulse/
 License:             BSD3
 License-file:        LICENSE
-Author:              Favonia
-Maintainer:          favonia@gmail.com
+Author:              Favonia, MnO2
+Maintainer:          favonia@gmail.com, mno2.csie@gmail.com
 Category:            Sound
 
 Build-type:          Simple
@@ -20,6 +20,10 @@ Library
         Sound.Pulse.Internal.Def
         Sound.Pulse.Internal.ChannelMap
         Sound.Pulse.Internal.Sample
+        Sound.Pulse.Internal.Operation
+        Sound.Pulse.Internal.Format
+        Sound.Pulse.Internal.Version
+        Sound.Pulse.Internal.Context
     Other-modules:
         Sound.Pulse.Internal.Volume
         Sound.Pulse.Internal.C2HS
@@ -27,7 +31,7 @@ Library
         base >= 3 && < 5,
         mtl >= 2 && < 3
     Build-tools:
-        c2hs
+        c2hs, hsc2hs
 
 Test-Suite test-pulse
     Type:

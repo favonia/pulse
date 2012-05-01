@@ -9,6 +9,7 @@ module Sound.Pulse.Internal.C2HS (cIntConv, cFloatConv, cFromBool, cToBool, cToE
 
 import Foreign.C.Types
 import Foreign.Marshal.Utils
+import Data.Bits
 
 cIntConv :: (Integral a, Integral b) => a -> b
 cIntConv = fromIntegral
@@ -27,3 +28,6 @@ cToEnum = toEnum . cIntConv
 
 cFromEnum :: (Enum e, Integral i) => e -> i
 cFromEnum = cIntConv . fromEnum
+
+combineBitMasks :: (Enum a, Bits b) => [a] -> b
+combineBitMasks = foldl (.|.) 0 . map (fromIntegral . fromEnum)

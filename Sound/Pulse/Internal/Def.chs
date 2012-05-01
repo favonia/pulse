@@ -59,7 +59,8 @@ instance Storable BufferAttr where
         {#set pa_buffer_attr.minreq #} p (cIntConv $ minreq x)
         {#set pa_buffer_attr.fragsize #} p (cIntConv $ fragsize x)
         
-
+data SpawnApi
+{#pointer *pa_spawn_api as SpawnApiPtr -> SpawnApi #}
 
 
 {#enum pa_seek_mode as SeekMode {underscoreToCase} deriving (Show, Eq) #}
