@@ -1,3 +1,23 @@
+{- |
+Module      :  Sound.Pulse.Internal.C2HS
+License     :  BSD3
+
+Maintainer  :  favonia@gmail.com
+Stability   :  experimental
+Portability :  non-portable (GHC only)
+
+C2HS marshallers
+
+At this point c2hs users are left writing their own marshalling functions.
+Unfortunately marshallers have to be names, not arbitrary expressions.
+For the details, see
+<http://stackoverflow.com/questions/9471902/whats-the-modern-way-to-access-c2hs-marshalling-functions>
+
+This file is a modified version of the marshalling library written by
+Manuel M T Chakravarty, released under BSD-like license.
+
+-}
+
 --  C->Haskell Compiler: Marshalling library
 --
 --  Copyright (c) [1999...2005] Manuel M T Chakravarty
@@ -25,13 +45,6 @@
 --  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 module Sound.Pulse.Internal.C2HS (cIntConv, cFloatConv, cFromBool, cToBool, cToEnum, cFromEnum) where
-
--- C2HS marshallers
---
--- At this point c2hs users are left writing their own marshalling functions. 
--- Unfortunately marshallers have to be names, not arbitrary expressions.
--- For the details, see 
--- http://stackoverflow.com/questions/9471902/whats-the-modern-way-to-access-c2hs-marshalling-functions 
 
 import Foreign.C.Types
 import Foreign.Marshal.Utils
