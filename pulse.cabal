@@ -20,16 +20,16 @@ Library
         Sound.Pulse.Volume
         Sound.Pulse.Internal
         Sound.Pulse.Internal.Def
-        Sound.Pulse.Internal.ChannelMap
-        Sound.Pulse.Internal.Sample
         Sound.Pulse.Internal.Operation
-        Sound.Pulse.Internal.Format
-        Sound.Pulse.Internal.Version
+        Sound.Pulse.Internal.ChannelMap
         Sound.Pulse.Internal.Context
+        Sound.Pulse.Internal.Format
         Sound.Pulse.Internal.PropList
+        Sound.Pulse.Internal.Sample
+        Sound.Pulse.Internal.Version
+        Sound.Pulse.Internal.Volume
         Sound.Pulse.PropList.Quote
     Other-modules:
-        Sound.Pulse.Internal.Volume
         Sound.Pulse.Internal.C2HS
     Build-depends:
         base >= 3 && < 5,
