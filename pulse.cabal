@@ -24,12 +24,17 @@ Library
         Sound.Pulse.Internal.Format
         Sound.Pulse.Internal.Version
         Sound.Pulse.Internal.Context
+        Sound.Pulse.Internal.PropList
+        Sound.Pulse.PropList.Quote
     Other-modules:
         Sound.Pulse.Internal.Volume
         Sound.Pulse.Internal.C2HS
     Build-depends:
         base >= 3 && < 5,
-        mtl >= 2 && < 3
+        mtl >= 2 && < 3,
+        syb >= 0.2,
+        ConfigFile >= 1,
+        template-haskell >= 2 && < 3
     Build-tools:
         c2hs, hsc2hs
 
