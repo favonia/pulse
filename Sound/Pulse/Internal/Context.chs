@@ -44,6 +44,17 @@ type IONewFunction = MainLoopApiPtr -> CInt -> IOEventFlags -> FunPtr (IOEventCa
 type IOEnableFunction = IOEventPtr -> IOEventFlags -> IO ()
 type IOFreeFunction = IOEventPtr -> IO ()
 type IOSetDestroyFunction = IOEventPtr -> IOEventDestroyCallbackFunction -> IO ()
+
+type TimeNewFunction = MainLoopApiPtr -> RawTimeValPtr -> FunPtr (TimeEventCallbackFunction) -> Ptr () -> IO (TimeEventPtr) 
+type TimeRestartFunction = TimeEventPtr -> RawTimeValPtr -> IO ()
+type TimeFreeFunction = TimeEventPtr -> IO ()
+type TimeSetDestroyFunction = TimeEventPtr -> TimeEventDestroyCallbackFunction -> IO ()
+
+type DeferNewFunction = MainLoopApiPtr -> FunPtr (DeferEventCallbackFunction) -> Ptr () -> IO (DeferEventPtr)
+type DeferEnableFunction = DeferEventPtr -> Int -> IO ()
+type DeferFreeFunction = DeferEventPtr -> IO ()
+type DeferSetDestroyFunction = DeferEventPtr -> FunPtr (DeferEventDestroyCallbackFunction) -> IO ()
+
 type QuitMainLoopFunction = MainLoopApiPtr -> CInt -> IO ()
 
 
@@ -53,6 +64,14 @@ data MainLoopApi = MainLoopApi {
                         ioEnable :: FunPtr (IOEnableFunction),
                         ioFree :: FunPtr (IOFreeFunction),
                         ioSetDestroy :: FunPtr (IOSetDestroyFunction),
+                        timeNew :: FunPtr (TimeNewFunction),
+                        timeRestart :: FunPtr (TimeRestartFunction),
+                        timeFree :: FunPtr (TimeFreeFunction),
+                        timeSetDestroy :: FunPtr (TimeSetDestroyFunction),
+                        deferNew :: FunPtr (DeferNewFunction),
+                        deferEnable :: FunPtr (DeferEnableFunction),
+                        deferFree :: FunPtr (DeferFreeFunction),
+                        deferSetDestroy :: FunPtr (DeferSetDestroyFunction),
                         quit :: FunPtr (QuitMainLoopFunction)
                     }   
 {#pointer *pa_mainloop_api as MainLoopApiPtr -> MainLoopApi #}
