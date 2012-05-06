@@ -24,6 +24,7 @@ Library
         Sound.Pulse.Internal.Format
         Sound.Pulse.Internal.Version
         Sound.Pulse.Internal.Context
+        Sound.Pulse.Internal.PropList
         Sound.Pulse.PropList.Quote
     Other-modules:
         Sound.Pulse.Internal.Volume

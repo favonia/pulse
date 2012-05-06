@@ -10,6 +10,7 @@ import Foreign.C.Types
 import Sound.Pulse.Internal.C2HS
 {#import Sound.Pulse.Internal.Def #}
 {#import Sound.Pulse.Internal.Operation #}
+import Sound.Pulse.Internal.PropList
 
 #include <pulse/context.h>
 #include <pulse/mainloop-api.h>
