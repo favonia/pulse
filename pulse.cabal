@@ -16,6 +16,7 @@ Library
         libpulse >= 1.0 && < 1.2
     Exposed-modules:
         Sound.Pulse.Monad
+        Sound.Pulse.Volume
         Sound.Pulse.Internal
         Sound.Pulse.Internal.Def
         Sound.Pulse.Internal.ChannelMap

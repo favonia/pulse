@@ -10,7 +10,9 @@ Portability :  non-portable (GHC only)
 This file re-exports common submodules.
 -}
 module Sound.Pulse (
-  module Sound.Pulse.Monad
+    module Sound.Pulse.Monad
+    module Sound.Pulse.Volume
 ) where
 
 import Sound.Pulse.Monad
+import Sound.Pulse.Volume
