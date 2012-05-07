@@ -36,7 +36,8 @@ Library
         mtl >= 2 && < 3,
         syb >= 0.2,
         ConfigFile >= 1,
-        template-haskell >= 2 && < 3
+        template-haskell >= 2 && < 3,
+        dependent-map >= 0.1 && < 0.2
     Build-tools:
         c2hs, hsc2hs
 
@@ -50,5 +51,6 @@ Test-Suite test-pulse
     Build-depends:
         base >= 3 && < 5,
         mtl >= 2 && < 3,
+        dependent-map >= 0.1 && < 0.2,
         QuickCheck,
         pulse

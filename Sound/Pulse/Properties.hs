@@ -12,18 +12,31 @@ This module provides the high-level property list interface.
 -}
 module Sound.Pulse.Properties where
 
+import Data.Dependent.Map
+
+-- |Access mode. Used in 'DeviceAccessMode'.
 data AccessMode = Mmap | MmapRewrite | Serial
 
+-- |Bus type. Used in 'DeviceBus'.
 data Bus = Isa | Pci | Usb | Firewire | Bluetooth
 
+-- |Class of a device. Used in 'DeviceClass'.
 data Class = Sound | Modem | Monitor | Filter
 
+-- |Form factor. Used in 'DeviceFormFactor'.
 data FormFactor = Internal | Speaker | Handset | Tv | Webcam | Microphone | Headset | Headphone | HandsFree | Car | Hifi | Computer | Portable
 
+-- |Button clicked in an event. Used in 'EventMouseButton'.
 data MouseButton = MouseLeft | MouseMiddle | MouseRight
 
+-- |Role of this media. Used in 'MediaRole' and 'DeviceIntendedRoles'.
 data Role = Video | Music | Game | Event | Phone | Animation | Production | A11y | Test
 
+-- |A map serving the high-level interface of @pa_proplist@
+-- (<http://freedesktop.org/software/pulseaudio/doxygen/proplist_8h.html>).
+type PropList = DMap PropTag
+
+-- |The tag type used to build the map.
 data PropTag a where
   MediaName :: PropTag String
   MediaTitle :: PropTag String
@@ -83,7 +96,7 @@ data PropTag a where
   DeviceVendorName :: PropTag String
   DeviceProductId :: PropTag Int -- FIXME : Device ID
   DeviceProductName :: PropTag String
-  DeviceClass :: PropTag String
+  DeviceClass :: PropTag Class
   DeviceFormFactor :: PropTag String
   DeviceBus :: PropTag Bus
   DeviceIconName :: PropTag String
@@ -92,7 +105,7 @@ data PropTag a where
   DeviceBufferingBufferSize :: PropTag Int
   DeviceBufferingFragmentSize :: PropTag Int
   DeviceProfileName :: PropTag String
-  DeviceIntendedRoles :: PropTag [String]
+  DeviceIntendedRoles :: PropTag [Role]
   DeviceProfileDescription :: PropTag String
 
   ModuleAuthor :: PropTag String
