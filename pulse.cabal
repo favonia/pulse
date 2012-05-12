@@ -1,6 +1,6 @@
 Name:                pulse
 Version:             0.0.0.0
-Synopsis:            Haskell binding to PulseAudio
+Synopsis:            Haskell binding to PulseAudio 1.x
 Homepage:            http://favonia.github.com/pulse/
 License:             BSD3
 License-file:        LICENSE

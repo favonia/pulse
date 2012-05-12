@@ -1,4 +1,4 @@
-#Haskell binding to PulseAudio
+#Haskell binding to PulseAudio 1.x
 
 ## For Developers
 
