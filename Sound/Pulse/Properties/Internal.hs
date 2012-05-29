@@ -1,3 +1,14 @@
+{- |
+Module      :  Sound.Pulse.Properties.Internal
+Copyright   :  (c) Favonia
+License     :  BSD3
+
+Maintainer  :  favonia@gmail.com
+Stability   :  experimental
+Portability :  non-portable (GHC only)
+
+This module provides Template Haskell generators for 'PropTag'.
+-}
 module Sound.Pulse.Properties.Internal where
 
 import Language.Haskell.TH

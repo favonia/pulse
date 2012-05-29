@@ -1,6 +1,6 @@
 {-# LANGUAGE GADTs, TemplateHaskell #-}
 {- |
-Module      :  Sound.Pulse.Monad
+Module      :  Sound.Pulse.Properties
 Copyright   :  (c) Favonia
 License     :  BSD3
 
