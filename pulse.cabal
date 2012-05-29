@@ -52,6 +52,7 @@ Test-Suite test-pulse
     Build-depends:
         base >= 3 && < 5,
         mtl >= 2 && < 2.2,
+        template-haskell >= 2.4 && < 2.8,
         dependent-map == 0.1.*,
         QuickCheck == 2.4.*,
         pulse

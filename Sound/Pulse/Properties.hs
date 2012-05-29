@@ -1,4 +1,4 @@
-{-# LANGUAGE GADTs #-}
+{-# LANGUAGE GADTs, TemplateHaskell #-}
 {- |
 Module      :  Sound.Pulse.Monad
 Copyright   :  (c) Favonia
@@ -10,32 +10,31 @@ Portability :  non-portable (GHC only)
 
 This module provides the high-level property list interface.
 -}
-module Sound.Pulse.Properties where
+module Sound.Pulse.Properties
+    ( AccessMode(..)
+    , Bus(..)
+    , Class(..)
+    , FormFactor(..)
+    , MouseButton(..)
+    , Role(..)
+    , PropTag(..)
+    , PropList(..)
+    ) where
 
 import Data.Dependent.Map
+import Sound.Pulse.Properties.Internal
 
--- |Access mode. Used in 'DeviceAccessMode'.
-data AccessMode = Mmap | MmapRewrite | Serial
-
--- |Bus type. Used in 'DeviceBus'.
-data Bus = Isa | Pci | Usb | Firewire | Bluetooth
-
--- |Class of a device. Used in 'DeviceClass'.
-data Class = Sound | Modem | Monitor | Filter
-
--- |Form factor. Used in 'DeviceFormFactor'.
-data FormFactor = Internal | Speaker | Handset | Tv | Webcam | Microphone | Headset | Headphone | HandsFree | Car | Hifi | Computer | Portable
-
--- |Button clicked in an event. Used in 'EventMouseButton'.
-data MouseButton = MouseLeft | MouseMiddle | MouseRight
-
--- |Role of this media. Used in 'MediaRole' and 'DeviceIntendedRoles'.
-data Role = Video | Music | Game | Event | Phone | Animation | Production | A11y | Test
+-- |The tag type used to construct the map type 'PropList'.
+-- This is a simple GDAT,
+-- but Template Haskell can only generate it
+-- in a more generalized syntax.
+$(genPropTag propQs)
 
 -- |A map serving the high-level interface of @pa_proplist@
 -- (<http://freedesktop.org/software/pulseaudio/doxygen/proplist_8h.html>).
 type PropList = DMap PropTag
 
+{-
 -- |The tag type used to build the map.
 data PropTag a where
   MediaName :: PropTag String
@@ -112,9 +111,11 @@ data PropTag a where
   ModuleDescription :: PropTag String
   ModuleUsage :: PropTag String
   ModuleVersion :: PropTag String
-{-
+
+{- Not sure about this part
   FormatSampleFormat :: PropTag String -- PCM, pa_sample_format_to_string()
   FormatRate :: PropTag Int
   FormatChannels :: PropTag Int
   FormatChannelMap :: PropTag String -- PCM, pa_channel_map_snprint()
+-}
 -}
