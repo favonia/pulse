@@ -1,4 +1,4 @@
-{-# LANGUAGE GADTs, TemplateHaskell #-}
+{-# LANGUAGE GADTs, TypeFamilies, TemplateHaskell #-}
 {- |
 Module      :  Sound.Pulse.Properties
 Copyright   :  (c) Favonia
@@ -28,7 +28,7 @@ import Sound.Pulse.Properties.Internal
 -- This is a simple GDAT,
 -- but Template Haskell can only generate it
 -- in a more generalized syntax.
-$(genPropTag propQs)
+$(genPropTag)
 
 -- |A map serving the high-level interface of @pa_proplist@
 -- (<http://freedesktop.org/software/pulseaudio/doxygen/proplist_8h.html>).

@@ -30,6 +30,7 @@ Library
         Sound.Pulse.Internal.Volume
         Sound.Pulse.PropList.Quote
     Other-modules:
+        Sound.Pulse.Properties.Internal
         Sound.Pulse.Internal.C2HS
     Build-depends:
         base >= 3 && < 5,

@@ -1,3 +1,4 @@
+{-# LANGUAGE TemplateHaskell #-}
 {- |
 Module      :  Sound.Pulse.Properties.Internal
 Copyright   :  (c) Favonia
@@ -12,12 +13,11 @@ This module provides Template Haskell generators for 'PropTag'.
 module Sound.Pulse.Properties.Internal where
 
 import Language.Haskell.TH
---import Text.Parsec
 
-data PropQ = PropQ
+data PropSpec = PropSpec
     { propName :: String
     , propHaskellName :: String
-    , propArgType :: String
+    , propArgType :: Name
     , propReader :: String
     , propPrinter :: String
     }
@@ -41,32 +41,32 @@ data MouseButton = MouseLeft | MouseMiddle | MouseRight
 data Role = Video | Music | Game | Event | Phone | Animation | Production | A11y | Test
 
 -- |Metadata for Template Haskell
-propQs :: [PropQ]
-propQs =
-    [ PropQ "media.name"      "MediaName"       "String"  undefined undefined
-    , PropQ "media.title"     "MediaTitle"      "String"  undefined undefined
-    , PropQ "media.artist"    "MediaArtist"     "String"  undefined undefined
-    , PropQ "media.copyright" "MediaCopyright"  "String"  undefined undefined
-    , PropQ "media.software"  "MediaSoftware"   "String"  undefined undefined
-    , PropQ "media.language"  "MediaLanguage"   "String"  undefined undefined
-    , PropQ "media.filename"  "MediaFilename"   "String"  undefined undefined
-    , PropQ "media.icon_name" "MediaIconName"   "String"  undefined undefined
-    , PropQ "media.role"      "MediaRole"       "Role"    undefined undefined
+propSpecs :: [PropSpec]
+propSpecs =
+    [ PropSpec "media.name"      "MediaName"       ''String  undefined undefined
+    , PropSpec "media.title"     "MediaTitle"      ''String  undefined undefined
+    , PropSpec "media.artist"    "MediaArtist"     ''String  undefined undefined
+    , PropSpec "media.copyright" "MediaCopyright"  ''String  undefined undefined
+    , PropSpec "media.software"  "MediaSoftware"   ''String  undefined undefined
+    , PropSpec "media.language"  "MediaLanguage"   ''String  undefined undefined
+    , PropSpec "media.filename"  "MediaFilename"   ''String  undefined undefined
+    , PropSpec "media.icon_name" "MediaIconName"   ''String  undefined undefined
+    , PropSpec "media.role"      "MediaRole"       ''Role    undefined undefined
     ]
 
 -- |Generate 'PropTag'
-genPropTag :: [PropQ] -> Q [Dec]
-genPropTag propQs = do
+genPropTag :: Q [Dec]
+genPropTag = do
     param <- newName "a"
-    tagName' <- newName "PropTag"
+    -- tagName' <- newName "PropTag"
     return $
-      [DataD
-        []
-        tagName'
-        [PlainTV param]
-        [ForallC
+        [ DataD
             []
-            [EqualP (VarT param) (ConT $ mkName $ propArgType pQ)]
-            (NormalC (mkName $ propHaskellName pQ) []) | pQ <- propQs ]
-        []]
-
+            (mkName "PropTag")
+            [PlainTV param]
+            [ForallC
+                []
+                [EqualP (VarT param) (ConT $ propArgType pQ)]
+                (NormalC (mkName $ propHaskellName pQ) []) | pQ <- propSpecs ]
+            []
+        ]
