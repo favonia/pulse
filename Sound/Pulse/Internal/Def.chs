@@ -4,36 +4,34 @@
 
 module Sound.Pulse.Internal.Def where
 
-import Foreign.Storable
-import Foreign.Ptr
-import Foreign.C.Types
-import Data.Word (Word32)
+import Foreign
+import Foreign.C
 import Control.Monad (liftM)
 import Control.Applicative
 import Sound.Pulse.Internal.C2HS
 
 #include <pulse/def.h>
 
-{#enum pa_context_state as ContextState {underscoreToCase} deriving (Show, Eq) #}
+{#enum context_state as ContextState {underscoreToCase} deriving (Show, Eq) #}
 
-{#enum pa_stream_state as StreamState {underscoreToCase} deriving (Show, Eq) #}
+{#enum stream_state as StreamState {underscoreToCase} deriving (Show, Eq) #}
 
-{#enum pa_operation_state as OperationState {underscoreToCase} deriving (Show, Eq) #}
+{#enum operation_state as OperationState {underscoreToCase} deriving (Show, Eq) #}
 
-{#enum pa_context_flags as ContextFlags {underscoreToCase} deriving (Show, Eq) #}
+{#enum context_flags as ContextFlags {underscoreToCase} deriving (Show, Eq) #}
 
-{#enum pa_device_type as DeviceType {underscoreToCase} deriving (Show, Eq) #}
+{#enum device_type as DeviceType {underscoreToCase} deriving (Show, Eq) #}
 
-{#enum pa_stream_direction as StreamDirection {underscoreToCase} deriving (Show, Eq) #}
+{#enum stream_direction as StreamDirection {underscoreToCase} deriving (Show, Eq) #}
 
-{#enum pa_stream_flags as StreamFlags {underscoreToCase} deriving (Show, Eq) #}
+{#enum stream_flags as StreamFlags {underscoreToCase} deriving (Show, Eq) #}
 
-{#enum pa_subscription_mask as SubscriptionMask {underscoreToCase} deriving (Show, Eq) #}
+{#enum subscription_mask as SubscriptionMask {underscoreToCase} deriving (Show, Eq) #}
 
-{#enum pa_subscription_event_type_t as SubscriptionEventType {underscoreToCase} deriving (Show, Eq) #}
+{#enum subscription_event_type_t as SubscriptionEventType {underscoreToCase} deriving (Show, Eq) #}
 
 data TimingInfo
-{#pointer *pa_timing_info as TimingInfoPtr -> TimingInfo #}
+{#pointer *timing_info as TimingInfoPtr -> TimingInfo #}
 
 data BufferAttr = BufferAttr { maxlength :: Word32, 
                                tlength :: Word32, 
@@ -41,34 +39,34 @@ data BufferAttr = BufferAttr { maxlength :: Word32,
                                minreq :: Word32, 
                                fragsize :: Word32}
 
-{#pointer *pa_buffer_attr as BufferAttrPtr -> BufferAttr #}
+{#pointer *buffer_attr as BufferAttrPtr -> BufferAttr #}
 
 instance Storable BufferAttr where
-    sizeOf _ = {#sizeof pa_buffer_attr #}
+    sizeOf _ = {#sizeof buffer_attr #}
     alignment _ = 4
     peek p = BufferAttr 
-        <$> liftM cIntConv ({#get pa_buffer_attr->maxlength #} p)
-        <*> liftM cIntConv ({#get pa_buffer_attr->tlength #} p)
-        <*> liftM cIntConv ({#get pa_buffer_attr->prebuf #} p)
-        <*> liftM cIntConv ({#get pa_buffer_attr->minreq #} p)
-        <*> liftM cIntConv ({#get pa_buffer_attr->fragsize #} p)
+        <$> liftM cIntConv ({#get buffer_attr->maxlength #} p)
+        <*> liftM cIntConv ({#get buffer_attr->tlength #} p)
+        <*> liftM cIntConv ({#get buffer_attr->prebuf #} p)
+        <*> liftM cIntConv ({#get buffer_attr->minreq #} p)
+        <*> liftM cIntConv ({#get buffer_attr->fragsize #} p)
     poke p x = do
-        {#set pa_buffer_attr.maxlength #} p (cIntConv $ maxlength x)
-        {#set pa_buffer_attr.tlength #} p (cIntConv $ tlength x)
-        {#set pa_buffer_attr.prebuf #} p (cIntConv $ prebuf x)
-        {#set pa_buffer_attr.minreq #} p (cIntConv $ minreq x)
-        {#set pa_buffer_attr.fragsize #} p (cIntConv $ fragsize x)
+        {#set buffer_attr.maxlength #} p (cIntConv $ maxlength x)
+        {#set buffer_attr.tlength #} p (cIntConv $ tlength x)
+        {#set buffer_attr.prebuf #} p (cIntConv $ prebuf x)
+        {#set buffer_attr.minreq #} p (cIntConv $ minreq x)
+        {#set buffer_attr.fragsize #} p (cIntConv $ fragsize x)
         
 data SpawnApi
-{#pointer *pa_spawn_api as SpawnApiPtr -> SpawnApi #}
+{#pointer *spawn_api as SpawnApiPtr -> SpawnApi #}
 
 
-{#enum pa_seek_mode as SeekMode {underscoreToCase} deriving (Show, Eq) #}
+{#enum seek_mode as SeekMode {underscoreToCase} deriving (Show, Eq) #}
 
-{#enum pa_sink_flags as SinkFlags {underscoreToCase} deriving (Show, Eq) #}
+{#enum sink_flags as SinkFlags {underscoreToCase} deriving (Show, Eq) #}
 
-{#enum pa_sink_state as SinkState {underscoreToCase} deriving (Show, Eq) #}
+{#enum sink_state as SinkState {underscoreToCase} deriving (Show, Eq) #}
 
-{#enum pa_source_flags as SourceFlags {underscoreToCase} deriving (Show, Eq) #}
+{#enum source_flags as SourceFlags {underscoreToCase} deriving (Show, Eq) #}
 
-{#enum pa_source_state as SourceState {underscoreToCase} deriving (Show, Eq) #}
+{#enum source_state as SourceState {underscoreToCase} deriving (Show, Eq) #}

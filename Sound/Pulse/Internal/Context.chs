@@ -4,9 +4,8 @@
 
 module Sound.Pulse.Internal.Context where
 
-import Foreign.Storable
-import Foreign.Ptr
-import Foreign.C.Types
+import Foreign
+import Foreign.C
 import Sound.Pulse.Internal.C2HS
 {#import Sound.Pulse.Internal.Def #}
 {#import Sound.Pulse.Internal.Operation #}
@@ -22,39 +21,39 @@ data RawTimeVal
 
 -- MainLoopApi Part; I don't know why a MainLoopApi file won't generate corresponding chi,
 -- hence causes compilation fail.
-{#enum pa_io_event_flags as IOEventFlags {underscoreToCase} deriving (Show, Eq) #}
+{#enum io_event_flags as IOEventFlags {underscoreToCase} deriving (Show, Eq) #}
 
 
 data IOEvent
 type IOEventPtr = Ptr (IOEvent)
-type IOEventCallbackFunction = MainLoopApiPtr -> IOEventPtr -> CInt -> IOEventFlags -> Ptr () -> IO ()
-type IOEventDestroyCallbackFunction = MainLoopApiPtr -> IOEventPtr -> Ptr () -> IO ()
+type IOEventCallback = MainLoopApiPtr -> IOEventPtr -> CInt -> IOEventFlags -> Ptr () -> IO ()
+type IOEventDestroyCallback = MainLoopApiPtr -> IOEventPtr -> Ptr () -> IO ()
 
 data TimeEvent
 type TimeEventPtr = Ptr (TimeEvent)
-type TimeEventCallbackFunction = MainLoopApiPtr -> TimeEventPtr -> RawTimeValPtr -> Ptr () -> IO ()
-type TimeEventDestroyCallbackFunction = MainLoopApiPtr -> TimeEventPtr -> Ptr () -> IO ()
+type TimeEventCallback = MainLoopApiPtr -> TimeEventPtr -> RawTimeValPtr -> Ptr () -> IO ()
+type TimeEventDestroyCallback = MainLoopApiPtr -> TimeEventPtr -> Ptr () -> IO ()
 
 data DeferEvent
 type DeferEventPtr = Ptr (DeferEvent)
-type DeferEventCallbackFunction = MainLoopApiPtr -> DeferEventPtr -> Ptr () -> IO ()
-type DeferEventDestroyCallbackFunction = MainLoopApiPtr -> DeferEventPtr -> Ptr () -> IO ()
+type DeferEventCallback = MainLoopApiPtr -> DeferEventPtr -> Ptr () -> IO ()
+type DeferEventDestroyCallback = MainLoopApiPtr -> DeferEventPtr -> Ptr () -> IO ()
 
 
-type IONewFunction = MainLoopApiPtr -> CInt -> IOEventFlags -> FunPtr (IOEventCallbackFunction) -> Ptr () -> IO (IOEventPtr)
+type IONewFunction = MainLoopApiPtr -> CInt -> IOEventFlags -> FunPtr (IOEventCallback) -> Ptr () -> IO (IOEventPtr)
 type IOEnableFunction = IOEventPtr -> IOEventFlags -> IO ()
 type IOFreeFunction = IOEventPtr -> IO ()
-type IOSetDestroyFunction = IOEventPtr -> IOEventDestroyCallbackFunction -> IO ()
+type IOSetDestroyFunction = IOEventPtr -> IOEventDestroyCallback -> IO ()
 
-type TimeNewFunction = MainLoopApiPtr -> RawTimeValPtr -> FunPtr (TimeEventCallbackFunction) -> Ptr () -> IO (TimeEventPtr) 
+type TimeNewFunction = MainLoopApiPtr -> RawTimeValPtr -> FunPtr (TimeEventCallback) -> Ptr () -> IO (TimeEventPtr)
 type TimeRestartFunction = TimeEventPtr -> RawTimeValPtr -> IO ()
 type TimeFreeFunction = TimeEventPtr -> IO ()
-type TimeSetDestroyFunction = TimeEventPtr -> TimeEventDestroyCallbackFunction -> IO ()
+type TimeSetDestroyFunction = TimeEventPtr -> TimeEventDestroyCallback -> IO ()
 
-type DeferNewFunction = MainLoopApiPtr -> FunPtr (DeferEventCallbackFunction) -> Ptr () -> IO (DeferEventPtr)
+type DeferNewFunction = MainLoopApiPtr -> FunPtr (DeferEventCallback) -> Ptr () -> IO (DeferEventPtr)
 type DeferEnableFunction = DeferEventPtr -> Int -> IO ()
 type DeferFreeFunction = DeferEventPtr -> IO ()
-type DeferSetDestroyFunction = DeferEventPtr -> FunPtr (DeferEventDestroyCallbackFunction) -> IO ()
+type DeferSetDestroyFunction = DeferEventPtr -> FunPtr (DeferEventDestroyCallback) -> IO ()
 
 type QuitMainLoopFunction = MainLoopApiPtr -> CInt -> IO ()
 
@@ -74,47 +73,45 @@ data MainLoopApi = MainLoopApi {
                         deferFree :: FunPtr (DeferFreeFunction),
                         deferSetDestroy :: FunPtr (DeferSetDestroyFunction),
                         quit :: FunPtr (QuitMainLoopFunction)
-                    }   
-{#pointer *pa_mainloop_api as MainLoopApiPtr -> MainLoopApi #}
+                    }
+{#pointer *mainloop_api as MainLoopApiPtr -> MainLoopApi #}
 
 
 -- Context Part
-type RawContextNotifyCallbackFunction = RawContextPtr -> Ptr () -> IO ()
-type RawContextSuccessCallbackFunction = RawContextPtr -> CInt -> Ptr () -> IO ()
+type RawContextNotifyCallback = RawContextPtr -> Ptr () -> IO ()
+type RawContextSuccessCallback = RawContextPtr -> CInt -> Ptr () -> IO ()
 
-data RawContext 
+data RawContext
 {#pointer *pa_context as RawContextPtr -> RawContext #}
 
-{#fun pa_context_new as ^ {id `MainLoopApiPtr', id `Ptr CChar'} -> `RawContextPtr' id #}
+{#fun context_new as ^ {id `MainLoopApiPtr', id `CString'} -> `RawContextPtr' id #}
 
-{#fun pa_context_unref as ^ {id `RawContextPtr'} -> `()' #}
+{#fun context_unref as ^ {id `RawContextPtr'} -> `()' #}
 
-{#fun pa_context_ref as ^ {id `RawContextPtr'} -> `RawContextPtr' id #}
+{#fun context_ref as ^ {id `RawContextPtr'} -> `RawContextPtr' id #}
 
-{#fun pa_context_set_state_callback as ^ {id `RawContextPtr', id `FunPtr RawContextNotifyCallbackFunction', id `Ptr ()'} -> `()' #}
+{#fun context_set_state_callback as ^ {id `RawContextPtr', id `FunPtr RawContextNotifyCallback', id `Ptr ()'} -> `()' #}
 
-{#fun pa_context_is_pending as ^ {id `RawContextPtr'} -> `Int' #}
+{#fun context_is_pending as ^ {id `RawContextPtr'} -> `Int' #}
 
-{#fun pa_context_get_state as ^ {id `RawContextPtr' } -> `Int' #}
+{#fun context_get_state as ^ {id `RawContextPtr' } -> `Int' #}
 
-{#fun pa_context_connect as ^ {id `RawContextPtr', id `Ptr CChar', `Int', id `SpawnApiPtr' } -> `Int' #}
+{#fun context_connect as ^ {id `RawContextPtr', id `CString', `Int', id `SpawnApiPtr' } -> `Int' #}
 
-{#fun pa_context_disconnect as ^ {id `RawContextPtr' } -> `()' #}
+{#fun context_disconnect as ^ {id `RawContextPtr' } -> `()' #}
 
-{#fun pa_context_drain as ^ {id `RawContextPtr', id `FunPtr RawContextNotifyCallbackFunction', id `Ptr ()'} -> `RawOperationPtr' id #}
+{#fun context_drain as ^ {id `RawContextPtr', id `FunPtr RawContextNotifyCallback', id `Ptr ()'} -> `RawOperationPtr' id #}
 
-{#fun pa_context_set_default_sink as ^ {id `RawContextPtr', id `Ptr CChar', id `FunPtr RawContextSuccessCallbackFunction', id `Ptr ()'} -> `RawOperationPtr' id #}
+{#fun context_set_default_sink as ^ {id `RawContextPtr', id `CString', id `FunPtr RawContextSuccessCallback', id `Ptr ()'} -> `RawOperationPtr' id #}
 
-{#fun pa_context_set_default_source as ^ {id `RawContextPtr', id `Ptr CChar', id `FunPtr RawContextSuccessCallbackFunction', id `Ptr ()'} -> `RawOperationPtr' id #}
+{#fun context_set_default_source as ^ {id `RawContextPtr', id `CString', id `FunPtr RawContextSuccessCallback', id `Ptr ()'} -> `RawOperationPtr' id #}
 
-{#fun pa_context_is_local as ^ {id `RawContextPtr'} -> `Int' #}
+{#fun context_is_local as ^ {id `RawContextPtr'} -> `Int' #}
 
-{#fun pa_context_set_name as ^ {id `RawContextPtr', id `Ptr CChar', id `FunPtr RawContextSuccessCallbackFunction', id `Ptr ()'} -> `RawOperationPtr' id #}
+{#fun context_set_name as ^ {id `RawContextPtr', id `CString', id `FunPtr RawContextSuccessCallback', id `Ptr ()'} -> `RawOperationPtr' id #}
 
-{#fun pa_context_get_server as ^ {id `RawContextPtr'} -> `Ptr CChar' id #}
+{#fun context_get_server as ^ {id `RawContextPtr'} -> `CString' id #}
 
-{#fun pa_context_get_protocol_version as ^ {id `RawContextPtr'} -> `Int' #}
+{#fun context_get_protocol_version as ^ {id `RawContextPtr'} -> `Int' #}
 
-{#fun pa_context_get_server_protocol_version as ^ {id `RawContextPtr'} -> `Int' #}
-
-
+{#fun context_get_server_protocol_version as ^ {id `RawContextPtr'} -> `Int' #}

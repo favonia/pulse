@@ -4,11 +4,11 @@
 
 module Sound.Pulse.Internal.Sample where
 
-import Foreign.Ptr
+import Foreign
 
 #include <pulse/sample.h>
 
-{#enum pa_sample_format as SampleFormat {underscoreToCase} deriving (Show, Eq) #}
+{#enum sample_format as SampleFormat {underscoreToCase} deriving (Show, Eq) #}
 
 data SampleSpec
-{#pointer *pa_sample_spec as SampleSpecPtr -> SampleSpec #}
+{#pointer *sample_spec as SampleSpecPtr -> SampleSpec #}

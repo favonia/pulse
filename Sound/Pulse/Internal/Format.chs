@@ -4,8 +4,8 @@
 
 module Sound.Pulse.Internal.Format where
 
-import Foreign.Ptr
+import Foreign
 
 #include <pulse/format.h>
 
-{#enum pa_encoding as Encoding {underscoreToCase} deriving (Show, Eq) #}
+{#enum encoding as Encoding {underscoreToCase} deriving (Show, Eq) #}
