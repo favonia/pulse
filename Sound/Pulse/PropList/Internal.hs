@@ -83,3 +83,22 @@ deriveGEqPropTag =
             |PropSpec {..} <- propSpecs]
             ++
             [Clause [WildP, WildP] (NormalB $ ConE 'Nothing) []]]]
+
+-- |Generate the instance for 'GCompare'
+deriveGComparePropTag :: Q [Dec]
+deriveGComparePropTag =
+    return [InstanceD []
+        (AppT (ConT ''GCompare) (ConT $ mkName "PropTag"))
+        [FunD 'gcompare $ concat $
+            [[Clause
+                [ConP (mkName propHaskellName) []
+                ,ConP (mkName propHaskellName) []
+                ]
+                (NormalB (ConE 'GEQ)) []
+            ,Clause
+                [WildP, ConP (mkName propHaskellName) []]
+                (NormalB (ConE 'GLT)) []
+            ,Clause
+                [ConP (mkName propHaskellName) [], WildP]
+                (NormalB (ConE 'GGT)) []]
+            |PropSpec {..} <- propSpecs]]]

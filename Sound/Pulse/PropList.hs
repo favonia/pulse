@@ -29,8 +29,8 @@ import Sound.Pulse.PropList.Internal
 -- but Template Haskell can only generate it
 -- in a more generalized syntax.
 $(genPropTag)
-
 $(deriveGEqPropTag)
+$(deriveGComparePropTag)
 
 -- |A map serving the high-level interface of @pa_proplist@
 -- (<http://freedesktop.org/software/pulseaudio/doxygen/proplist_8h.html>).
