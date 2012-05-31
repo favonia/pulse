@@ -39,7 +39,8 @@ Library
         ConfigFile == 1.1.*,
         -- TH 2.7.* is not buildable under GHC 7.2
         template-haskell >= 2.4 && < 2.8,
-        dependent-map == 0.1.*
+        dependent-map == 0.1.*,
+        dependent-sum == 0.2.*
     Build-tools:
         c2hs, hsc2hs
 
@@ -55,5 +56,6 @@ Test-Suite test-pulse
         mtl >= 2 && < 2.2,
         template-haskell >= 2.4 && < 2.8,
         dependent-map == 0.1.*,
+        dependent-sum == 0.2.*,
         QuickCheck == 2.4.*,
         pulse

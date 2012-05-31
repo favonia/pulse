@@ -30,6 +30,8 @@ import Sound.Pulse.Properties.Internal
 -- in a more generalized syntax.
 $(genPropTag)
 
+$(deriveGEqPropTag)
+
 -- |A map serving the high-level interface of @pa_proplist@
 -- (<http://freedesktop.org/software/pulseaudio/doxygen/proplist_8h.html>).
 type PropList = DMap PropTag
@@ -37,20 +39,6 @@ type PropList = DMap PropTag
 {-
 -- |The tag type used to build the map.
 data PropTag a where
-  MediaName :: PropTag String
-  MediaTitle :: PropTag String
-  MediaArtist :: PropTag String
-  MediaCopyright :: PropTag String
-  MetaSoftware :: PropTag String
-  MediaLanguage :: PropTag String
-  MediaFilename :: PropTag String
-  MediaIconName :: PropTag String
-  MediaRole :: PropTag Role
-
-  FilterWant :: PropTag String
-  FilterApply :: PropTag String
-  FilterSuppress :: PropTag String
-
   EventId :: PropTag String
   EventDescription :: PropTag String
   EventMouseX :: PropTag Int
