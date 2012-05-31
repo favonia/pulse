@@ -16,7 +16,8 @@ Library
         libpulse >= 1.0 && < 1.2
     Exposed-modules:
         Sound.Pulse.Monad
-        Sound.Pulse.Properties
+        Sound.Pulse.PropList
+        Sound.Pulse.PropList.Quote
         Sound.Pulse.Volume
         Sound.Pulse.Internal
         Sound.Pulse.Internal.Def
@@ -28,9 +29,8 @@ Library
         Sound.Pulse.Internal.Sample
         Sound.Pulse.Internal.Version
         Sound.Pulse.Internal.Volume
-        Sound.Pulse.PropList.Quote
     Other-modules:
-        Sound.Pulse.Properties.Internal
+        Sound.Pulse.PropList.Internal
         Sound.Pulse.Internal.C2HS
     Build-depends:
         base >= 3 && < 5,

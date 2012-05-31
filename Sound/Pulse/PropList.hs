@@ -1,6 +1,6 @@
 {-# LANGUAGE GADTs, TypeFamilies, TemplateHaskell #-}
 {- |
-Module      :  Sound.Pulse.Properties
+Module      :  Sound.Pulse.PropList
 Copyright   :  (c) Favonia
 License     :  BSD3
 
@@ -10,7 +10,7 @@ Portability :  non-portable (GHC only)
 
 This module provides the high-level property list interface.
 -}
-module Sound.Pulse.Properties
+module Sound.Pulse.PropList
     ( AccessMode(..)
     , Bus(..)
     , Class(..)
@@ -22,7 +22,7 @@ module Sound.Pulse.Properties
     ) where
 
 import Data.Dependent.Map
-import Sound.Pulse.Properties.Internal
+import Sound.Pulse.PropList.Internal
 
 -- |The tag type used to construct the map type 'PropList'.
 -- This is a simple GDAT,

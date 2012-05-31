@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell, RecordWildCards #-}
 {- |
-Module      :  Sound.Pulse.Properties.Internal
+Module      :  Sound.Pulse.PropList.Internal
 Copyright   :  (c) Favonia
 License     :  BSD3
 
@@ -10,7 +10,7 @@ Portability :  non-portable (GHC only)
 
 This module provides Template Haskell generators for 'PropTag'.
 -}
-module Sound.Pulse.Properties.Internal where
+module Sound.Pulse.PropList.Internal where
 
 import Language.Haskell.TH
 import Data.GADT.Compare
