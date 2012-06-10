@@ -12,5 +12,5 @@ import Foreign
 
 {#enum channel_map_def as ChannelMapDef {underscoreToCase} deriving (Show, Eq) #}
 
-data ChannelMap = ChannelMap [ChannelPosition] 
+data ChannelMap = ChannelMap [ChannelPosition]
 {#pointer *channel_map as ChannelMapPtr -> ChannelMap #}

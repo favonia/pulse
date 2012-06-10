@@ -11,7 +11,17 @@ Category:            Sound
 Build-type:          Simple
 Cabal-version:       >=1.8
 
+Homepage:            http://favonia.github.com/pulse/
+Bug-Reports:         https://github.com/favonia/pulse/issues
+Source-Repository    head
+    Type: git
+    Location: git@github.com:favonia/pulse.git
+
 Library
+    Ghc-Options:
+        -Wall
+    Hs-Source-Dirs:
+        src
     Pkgconfig-depends:
         libpulse >= 1.0 && < 1.2
     Exposed-modules:
@@ -47,8 +57,9 @@ Library
 Test-Suite test-pulse
     Type:
         exitcode-stdio-1.0
+    Hs-Source-Dirs: src tests
     Main-is:
-        tests/Test.hs
+        Test.hs
     Ghc-options:
         -threaded
     Build-depends:
