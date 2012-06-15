@@ -33,3 +33,5 @@ data RawPropList
 
 {#fun proplist_equal as ^ {id `RawPropListPtr', id `RawPropListPtr'} -> `Int' #}
 
+type PPtr = Ptr (Ptr ())
+{#fun proplist_iterate as ^ {id `RawPropListPtr', id `PPtr'} -> `CString' id #}
