@@ -42,7 +42,7 @@ data MouseButton = MouseLeft | MouseMiddle | MouseRight
 -- |Role of this media. Used in 'MediaRole' and 'DeviceIntendedRoles'.
 data Role = Video | Music | Game | Event | Phone | Animation | Production | A11y | Test
 
--- |List of strings. This type alias is created purely for Template Haskell.
+-- |List of strings. This type alias is created purely for our usage of Template Haskell.
 type StringList = [String]
 
 -- |Metadata for Template Haskell
@@ -153,7 +153,7 @@ genFromKeyValue = do
     sig <- [t|String -> String -> DSum $(return propTag)|]
     return
         [ SigD func sig
-        , FunD func
+        , FunD func $
             [ Clause
                 [ LitP $ StringL $ propRawName ps
                 , VarP var
@@ -164,4 +164,11 @@ genFromKeyValue = do
                     (Just $ AppE (VarE (propFromRawValue ps)) (VarE var)))
                 []
             | ps <- propSpecs
-            ]]
+            ]
+            ++
+            -- XXX: poor error handling
+            [Clause
+                [WildP, WildP]
+                (NormalB $ AppE (VarE 'error)
+                    (LitE $ StringL "unknown property name"))
+                []]]

@@ -17,6 +17,7 @@ module Sound.Pulse.PropList
     , FormFactor(..)
     , MouseButton(..)
     , Role(..)
+    , StringList
     , PropTag(..)
     , readRawPropListPtr
     , writeRawPropListPtr
