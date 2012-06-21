@@ -1,4 +1,4 @@
-{-# LANGUAGE GADTs, TypeFamilies, TemplateHaskell #-}
+{-# LANGUAGE GADTs, TypeFamilies, TemplateHaskell, CPP #-}
 {- |
 Module      :  Sound.Pulse.PropList
 Copyright   :  (c) Favonia
@@ -18,10 +18,22 @@ module Sound.Pulse.PropList
     , MouseButton(..)
     , Role(..)
     , PropTag(..)
-    , PropList(..)
+    , readRawPropListPtr
+    , writeRawPropListPtr
     ) where
 
+import Data.Maybe (fromJust)
+import System.IO (fixIO)
+import Control.Monad
+import Control.Monad.Trans (MonadIO(..))
+#if __GLASGOW_HASKELL__ >= 702
+import Foreign.Safe
+#else
+import Foreign
+#endif
 import Data.Dependent.Map
+
+import Sound.Pulse.Internal.PropList
 import Sound.Pulse.PropList.Internal
 
 -- |The tag type used to construct the map type 'PropList'.
@@ -32,35 +44,36 @@ $(genPropTag)
 $(deriveGEqPropTag)
 $(deriveGComparePropTag)
 
+-- |Marshaling functions
+$(genToKeyValue)
+$(genFromKeyValue)
+
 -- |A map serving the high-level interface of @pa_proplist@
 -- (<http://freedesktop.org/software/pulseaudio/doxygen/proplist_8h.html>).
 type PropList = DMap PropTag
 
+-- |Construct a 'PropList' out of the raw representation.
+readRawPropListPtr :: MonadIO m => RawPropListPtr -> m PropList
+readRawPropListPtr raw = liftIO $ with nullPtr $ \state -> do
+    pl <- fixIO $ \loop -> do
+        key' <- proplistIterate raw state
+        case key' of
+            Nothing -> return []
+            Just key -> do
+                -- XXX: 'fromJust' is ugly
+                value <- liftM fromJust $ proplistGets raw key
+                return $ fromKeyValue key value : loop
+    return $ fromList pl
+
+-- |Marshal a 'PropList' into raw representation.
+writeRawPropListPtr :: MonadIO m => RawPropListPtr -> PropList -> m ()
+writeRawPropListPtr raw pl = liftIO $ do
+    proplistClear raw
+    forM_ (toList pl) $ uncurry (proplistSets raw) . toKeyValue
+
 {-
 -- |The tag type used to build the map.
 data PropTag a where
-  EventId :: PropTag String
-  EventDescription :: PropTag String
-  EventMouseX :: PropTag Int
-  EventMouseY :: PropTag Int
-  EventMouseHpos :: PropTag Double
-  EventMouseVpos :: PropTag Double
-  EventMouseButton :: PropTag MouseButton
-
-  WindowName :: PropTag String
-  WindowId :: PropTag String
-  WindowIconName :: PropTag String
-  WindowX :: PropTag Int
-  WindowY :: PropTag Int
-  WindowWidth :: PropTag Int
-  WindowHeight :: PropTag Int
-  WindowHpos :: PropTag Double
-  WindowVpos :: PropTag Double
-  WindowDesktop :: PropTag [Int]
-  WindowX11Display :: PropTag String
-  WindowX11Screen :: PropTag Int
-  WindowX11Monitor :: PropTag Int
-  WindowX11Xid :: PropTag Int -- Int???
 
   ApplicationName :: PropTag String
   ApplicationId :: PropTag String
