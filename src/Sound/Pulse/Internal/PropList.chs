@@ -19,12 +19,12 @@ data RawPropList
 
 {#fun proplist_sets as ^ {id `RawPropListPtr', `String', `String'} -> `Int' #}
 
-{#fun proplist_gets as ^ {id `RawPropListPtr', `String'} -> `String' #}
+{#fun proplist_gets as ^ {id `RawPropListPtr', `String'} -> `Maybe String' toMaybeString* #}
 
 {#fun proplist_unset as ^ {id `RawPropListPtr', `String'} -> `Int' #}
 
 type PropListIterateState = Ptr ()
-{#fun proplist_iterate as ^ {id `RawPropListPtr', id `Ptr PropListIterateState'} -> `String' #}
+{#fun proplist_iterate as ^ {id `RawPropListPtr', id `Ptr PropListIterateState'} -> `Maybe String' toMaybeString* #}
 
 {#fun proplist_contains as ^ {id `RawPropListPtr', `String'} -> `Int' #}
 

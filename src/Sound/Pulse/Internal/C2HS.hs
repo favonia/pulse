@@ -46,6 +46,8 @@ Manuel M T Chakravarty, released under BSD-like license.
 
 module Sound.Pulse.Internal.C2HS where
 
+import Control.Monad
+import Foreign.C
 import Foreign.Safe
 
 cIntConv :: (Integral a, Integral b) => a -> b
@@ -65,6 +67,12 @@ cToEnum = toEnum . cIntConv
 
 cFromEnum :: (Enum e, Integral i) => e -> i
 cFromEnum = cIntConv . fromEnum
+
+toMaybe :: Storable a => Ptr a -> IO (Maybe a)
+toMaybe p = if p == nullPtr then return Nothing else liftM Just $ peek p
+
+toMaybeString :: CString -> IO (Maybe String)
+toMaybeString p = if p == nullPtr then return Nothing else liftM Just $ peekCString p
 
 combineBitMasks :: (Enum a, Bits b) => [a] -> b
 combineBitMasks = foldl (.|.) 0 . map (fromIntegral . fromEnum)
