@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {- |
 Module      :  Sound.Pulse.Internal.C2HS
 License     :  BSD3
@@ -48,7 +49,11 @@ module Sound.Pulse.Internal.C2HS where
 
 import Control.Monad
 import Foreign.C
+#if __GLASGOW_HASKELL__ >= 720
 import Foreign.Safe
+#else
+import Foreign
+#endif
 
 cIntConv :: (Integral a, Integral b) => a -> b
 cIntConv = fromIntegral

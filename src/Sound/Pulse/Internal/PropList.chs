@@ -5,7 +5,11 @@
 module Sound.Pulse.Internal.PropList where
 
 import Foreign.C
+#if __GLASGOW_HASKELL__ >= 702
 import Foreign.Safe
+#else
+import Foreign
+#endif
 import Sound.Pulse.Internal.C2HS
 
 #include <pulse/proplist.h>
