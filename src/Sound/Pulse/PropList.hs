@@ -19,6 +19,7 @@ module Sound.Pulse.PropList
     , Role(..)
     , StringList
     , PropTag(..)
+    , PropList
     , readRawPropListPtr
     , writeRawPropListPtr
     ) where
