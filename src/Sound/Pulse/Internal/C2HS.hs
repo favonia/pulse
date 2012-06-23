@@ -1,4 +1,7 @@
 {-# LANGUAGE CPP #-}
+#if __GLASGOW_HASKELL__ >= 702
+{-# LANGUAGE Safe #-}
+#endif
 {- |
 Module      :  Sound.Pulse.Internal.C2HS
 License     :  BSD3
