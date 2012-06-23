@@ -1,3 +1,4 @@
+{-# LANGUAGE Safe #-}
 {-# LANGUAGE ForeignFunctionInterface, EmptyDataDecls #-}
 
 {#context prefix = "pa"#}
@@ -21,16 +22,16 @@ data RawPropList
 
 {#fun proplist_free as ^ {id `RawPropListPtr' } -> `()' #}
 
-{#fun proplist_sets as ^ {id `RawPropListPtr', `String', `String'} -> `Int' #}
+{#fun proplist_sets as ^ {id `RawPropListPtr', withUTF8CString* `String', withUTF8CString* `String'} -> `Int' #}
 
-{#fun proplist_gets as ^ {id `RawPropListPtr', `String'} -> `Maybe String' toMaybeString* #}
+{#fun proplist_gets as ^ {id `RawPropListPtr', withUTF8CString* `String'} -> `Maybe String' peekNullableUTF8CString* #}
 
-{#fun proplist_unset as ^ {id `RawPropListPtr', `String'} -> `Int' #}
+{#fun proplist_unset as ^ {id `RawPropListPtr', withUTF8CString* `String'} -> `Int' #}
 
 type PropListIterateState = Ptr ()
-{#fun proplist_iterate as ^ {id `RawPropListPtr', id `Ptr PropListIterateState'} -> `Maybe String' toMaybeString* #}
+{#fun proplist_iterate as ^ {id `RawPropListPtr', id `Ptr PropListIterateState'} -> `Maybe String' peekNullableUTF8CString* #}
 
-{#fun proplist_contains as ^ {id `RawPropListPtr', `String'} -> `Int' #}
+{#fun proplist_contains as ^ {id `RawPropListPtr', withUTF8CString* `String'} -> `Int' #}
 
 {#fun proplist_clear as ^ {id `RawPropListPtr'} -> `()' #}
 

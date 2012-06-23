@@ -1,10 +1,15 @@
+{-# LANGUAGE Safe #-}
 {-# LANGUAGE ForeignFunctionInterface, EmptyDataDecls #-}
 
 {#context prefix = "pa"#}
 
 module Sound.Pulse.Internal.Context where
 
+#if __GLASGOW_HASKELL__ >= 702
+import Foreign.Safe
+#else
 import Foreign
+#endif
 import Foreign.C
 import Sound.Pulse.Internal.C2HS
 {#import Sound.Pulse.Internal.Def #}
@@ -40,20 +45,20 @@ type DeferEventCallback = MainLoopApiPtr -> DeferEventPtr -> Ptr () -> IO ()
 type DeferEventDestroyCallback = MainLoopApiPtr -> DeferEventPtr -> Ptr () -> IO ()
 
 
-type IONewFunction = MainLoopApiPtr -> CInt -> IOEventFlags -> FunPtr (IOEventCallback) -> Ptr () -> IO (IOEventPtr)
+type IONewFunction = MainLoopApiPtr -> CInt -> IOEventFlags -> FunPtr IOEventCallback -> Ptr () -> IO IOEventPtr
 type IOEnableFunction = IOEventPtr -> IOEventFlags -> IO ()
 type IOFreeFunction = IOEventPtr -> IO ()
 type IOSetDestroyFunction = IOEventPtr -> IOEventDestroyCallback -> IO ()
 
-type TimeNewFunction = MainLoopApiPtr -> RawTimeValPtr -> FunPtr (TimeEventCallback) -> Ptr () -> IO (TimeEventPtr)
+type TimeNewFunction = MainLoopApiPtr -> RawTimeValPtr -> FunPtr TimeEventCallback -> Ptr () -> IO TimeEventPtr
 type TimeRestartFunction = TimeEventPtr -> RawTimeValPtr -> IO ()
 type TimeFreeFunction = TimeEventPtr -> IO ()
 type TimeSetDestroyFunction = TimeEventPtr -> TimeEventDestroyCallback -> IO ()
 
-type DeferNewFunction = MainLoopApiPtr -> FunPtr (DeferEventCallback) -> Ptr () -> IO (DeferEventPtr)
+type DeferNewFunction = MainLoopApiPtr -> FunPtr DeferEventCallback -> Ptr () -> IO DeferEventPtr
 type DeferEnableFunction = DeferEventPtr -> Int -> IO ()
 type DeferFreeFunction = DeferEventPtr -> IO ()
-type DeferSetDestroyFunction = DeferEventPtr -> FunPtr (DeferEventDestroyCallback) -> IO ()
+type DeferSetDestroyFunction = DeferEventPtr -> FunPtr DeferEventDestroyCallback -> IO ()
 
 type QuitMainLoopFunction = MainLoopApiPtr -> CInt -> IO ()
 
@@ -78,39 +83,67 @@ data MainLoopApi = MainLoopApi {
 
 
 -- Context Part
-type RawContextNotifyCallback = RawContextPtr -> Ptr () -> IO ()
-type RawContextSuccessCallback = RawContextPtr -> CInt -> Ptr () -> IO ()
+type RawContextNotifyCallback a = RawContextPtr -> RawUserData a -> IO ()
+type RawContextSuccessCallback a = RawContextPtr -> CInt -> RawUserData a -> IO ()
 
 data RawContext
 {#pointer *pa_context as RawContextPtr -> RawContext #}
 
-{#fun context_new as ^ {id `MainLoopApiPtr', id `CString'} -> `RawContextPtr' id #}
+{#fun context_new as ^ {id `MainLoopApiPtr', withUTF8CString* `String'} -> `RawContextPtr' id #}
 
 {#fun context_unref as ^ {id `RawContextPtr'} -> `()' #}
 
 {#fun context_ref as ^ {id `RawContextPtr'} -> `RawContextPtr' id #}
 
-{#fun context_set_state_callback as ^ {id `RawContextPtr', id `FunPtr RawContextNotifyCallback', id `Ptr ()'} -> `()' #}
+{#fun context_set_state_callback as ^
+    { id `RawContextPtr'
+    , id `FunPtr (RawContextNotifyCallback a)'
+    , castMaybeStablePtrToPtr `UserData a'
+    } -> `()' #}
 
 {#fun context_is_pending as ^ {id `RawContextPtr'} -> `Int' #}
 
 {#fun context_get_state as ^ {id `RawContextPtr' } -> `Int' #}
 
-{#fun context_connect as ^ {id `RawContextPtr', id `CString', `Int', id `SpawnApiPtr' } -> `Int' #}
+{#fun context_connect as ^
+    { id `RawContextPtr'
+    , withNullableUTF8CString* `Maybe String'
+    , combineBitMasks `[ContextFlags]'
+    , id `SpawnApiPtr'
+    } -> `Int' #}
 
 {#fun context_disconnect as ^ {id `RawContextPtr' } -> `()' #}
 
-{#fun context_drain as ^ {id `RawContextPtr', id `FunPtr RawContextNotifyCallback', id `Ptr ()'} -> `RawOperationPtr' id #}
+{#fun context_drain as ^
+    { id `RawContextPtr'
+    , id `FunPtr (RawContextNotifyCallback a)'
+    , castMaybeStablePtrToPtr `UserData a'
+    } -> `RawOperationPtr' id #}
 
-{#fun context_set_default_sink as ^ {id `RawContextPtr', id `CString', id `FunPtr RawContextSuccessCallback', id `Ptr ()'} -> `RawOperationPtr' id #}
+{#fun context_set_default_sink as ^
+    { id `RawContextPtr'
+    , withUTF8CString* `String'
+    , id `FunPtr (RawContextSuccessCallback a)'
+    , castMaybeStablePtrToPtr `UserData a'
+    } -> `RawOperationPtr' id #}
 
-{#fun context_set_default_source as ^ {id `RawContextPtr', id `CString', id `FunPtr RawContextSuccessCallback', id `Ptr ()'} -> `RawOperationPtr' id #}
+{#fun context_set_default_source as ^
+    { id `RawContextPtr'
+    , withUTF8CString* `String'
+    , id `FunPtr (RawContextSuccessCallback a)'
+    , castMaybeStablePtrToPtr `UserData a'
+    } -> `RawOperationPtr' id #}
 
 {#fun context_is_local as ^ {id `RawContextPtr'} -> `Int' #}
 
-{#fun context_set_name as ^ {id `RawContextPtr', id `CString', id `FunPtr RawContextSuccessCallback', id `Ptr ()'} -> `RawOperationPtr' id #}
+{#fun context_set_name as ^
+    { id `RawContextPtr'
+    , withUTF8CString* `String'
+    , id `FunPtr (RawContextSuccessCallback a)'
+    , castMaybeStablePtrToPtr `UserData a'
+    } -> `RawOperationPtr' id #}
 
-{#fun context_get_server as ^ {id `RawContextPtr'} -> `CString' id #}
+{#fun context_get_server as ^ {id `RawContextPtr'} -> `String' peekUTF8CString* #}
 
 {#fun context_get_protocol_version as ^ {id `RawContextPtr'} -> `Int' #}
 

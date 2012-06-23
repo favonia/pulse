@@ -1,10 +1,15 @@
+{-# LANGUAGE Safe #-}
 {-# LANGUAGE ForeignFunctionInterface, EmptyDataDecls #-}
 
 {#context prefix = "pa"#}
 
 module Sound.Pulse.Internal.Def where
 
+#if __GLASGOW_HASKELL__ >= 702
+import Foreign.Safe
+#else
 import Foreign
+#endif
 import Foreign.C
 import Control.Monad (liftM)
 import Control.Applicative

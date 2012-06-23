@@ -1,4 +1,6 @@
-{-# LANGUAGE GADTs, TypeFamilies, TemplateHaskell, CPP #-}
+{-# LANGUAGE Trustworthy #-}
+{-# LANGUAGE CPP #-}
+{-# LANGUAGE GADTs, TypeFamilies, TemplateHaskell #-}
 {- |
 Module      :  Sound.Pulse.PropList
 Copyright   :  (c) Favonia

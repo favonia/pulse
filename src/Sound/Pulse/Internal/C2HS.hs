@@ -49,11 +49,13 @@ module Sound.Pulse.Internal.C2HS where
 
 import Control.Monad
 import Foreign.C
-#if __GLASGOW_HASKELL__ >= 720
+#if __GLASGOW_HASKELL__ >= 702
 import Foreign.Safe
 #else
 import Foreign
 #endif
+import qualified GHC.Foreign as GHC
+import GHC.IO.Encoding (utf8)
 
 cIntConv :: (Integral a, Integral b) => a -> b
 cIntConv = fromIntegral
@@ -73,11 +75,39 @@ cToEnum = toEnum . cIntConv
 cFromEnum :: (Enum e, Integral i) => e -> i
 cFromEnum = cIntConv . fromEnum
 
-toMaybe :: Storable a => Ptr a -> IO (Maybe a)
-toMaybe p = if p == nullPtr then return Nothing else liftM Just $ peek p
+peekUTF8CString :: CString -> IO String
+peekUTF8CString = GHC.peekCString utf8
 
-toMaybeString :: CString -> IO (Maybe String)
-toMaybeString p = if p == nullPtr then return Nothing else liftM Just $ peekCString p
+withUTF8CString :: String -> (CString -> IO a) -> IO a
+withUTF8CString = GHC.withCString utf8
+
+withUTF8CStringLen :: String -> (CStringLen -> IO a) -> IO a
+withUTF8CStringLen = GHC.withCStringLen utf8
+
+nullibleM :: (Ptr a -> IO b) -> Ptr a -> IO (Maybe b)
+nullibleM peeker ptr = if ptr == nullPtr
+    then return Nothing
+    else liftM Just $ peeker ptr
+
+peekNullableUTF8CString :: CString -> IO (Maybe String)
+peekNullableUTF8CString = nullibleM peekUTF8CString
+
+withNullableUTF8CString :: Maybe String -> (CString -> IO a) -> IO a
+withNullableUTF8CString Nothing = ($ nullPtr)
+withNullableUTF8CString (Just s) = withUTF8CString s
 
 combineBitMasks :: (Enum a, Bits b) => [a] -> b
 combineBitMasks = foldl (.|.) 0 . map (fromIntegral . fromEnum)
+
+type UserData a = Maybe (StablePtr a)
+type RawUserData a = Ptr ()
+
+castMaybeStablePtrToPtr :: UserData a -> RawUserData a
+castMaybeStablePtrToPtr Nothing = nullPtr
+castMaybeStablePtrToPtr (Just p) = castStablePtrToPtr p
+
+nullible :: (Ptr a -> b) -> Ptr a -> Maybe b
+nullible conv ptr = if ptr == nullPtr then Nothing else Just $ conv ptr
+
+castPtrToMaybeStable :: RawUserData a -> UserData a
+castPtrToMaybeStable = nullible castPtrToStablePtr
