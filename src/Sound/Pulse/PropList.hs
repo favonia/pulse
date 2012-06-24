@@ -21,39 +21,39 @@ module Sound.Pulse.PropList
     , StringList
     , PropTag(..)
     , PropList
-    , readRawPropListPtr
-    , writeRawPropListPtr
+    , peekRawPropList
+    , withRawPropList
     ) where
 
 import Data.Maybe (fromJust)
 import System.IO (fixIO)
 import Control.Monad
-import Control.Monad.Trans (MonadIO(..))
+import Control.Exception.Base (bracket)
 import Foreign.Safe
 import Data.Dependent.Map
 
 import Sound.Pulse.Internal.PropList
 import Sound.Pulse.PropList.Internal
 
--- |The tag type used to construct the map type 'PropList'.
--- This is a simple GDAT,
--- but Template Haskell can only generate it
--- in a more generalized syntax.
+-- | The tag type used to construct the map type 'PropList'.
+--   This is equivalent to a simple GDAT,
+--   but Template Haskell can only generate it
+--   in a more generalized syntax.
 $(genPropTag)
 $(deriveGEqPropTag)
 $(deriveGComparePropTag)
 
--- |Marshaling functions
+-- | Marshaling functions
 $(genToKeyValue)
 $(genFromKeyValue)
 
--- |A map serving the high-level interface of @pa_proplist@
--- (<http://freedesktop.org/software/pulseaudio/doxygen/proplist_8h.html>).
+-- | A map serving the high-level interface of @pa_proplist@.
+--   (See <http://freedesktop.org/software/pulseaudio/doxygen/proplist_8h.html>.)
 type PropList = DMap PropTag
 
--- |Construct a 'PropList' out of the raw representation.
-readRawPropListPtr :: MonadIO m => RawPropListPtr -> m PropList
-readRawPropListPtr raw = liftIO $ with nullPtr $ \state -> do
+-- | Construct a 'PropList' out of the raw representation.
+peekRawPropList :: RawPropListPtr -> IO PropList
+peekRawPropList raw = with nullPtr $ \state -> do
     pl <- fixIO $ \loop -> do
         key' <- proplistIterate raw state
         case key' of
@@ -64,11 +64,17 @@ readRawPropListPtr raw = liftIO $ with nullPtr $ \state -> do
                 return $ fromKeyValue key value : loop
     return $ fromList pl
 
--- |Marshal a 'PropList' into raw representation.
-writeRawPropListPtr :: MonadIO m => RawPropListPtr -> PropList -> m ()
-writeRawPropListPtr raw pl = liftIO $ do
-    proplistClear raw
-    forM_ (toList pl) $ uncurry (proplistSets raw) . toKeyValue
+-- | Marshal a 'PropList' into raw representation.
+withRawPropList :: PropList -> (RawPropListPtr -> IO a) -> IO a
+withRawPropList pl code =
+    bracket
+        (do
+            rawPl <- proplistNew
+            forM_ (toList pl) $ uncurry (proplistSets rawPl) . toKeyValue
+            return rawPl
+        )
+        proplistFree
+        code
 
 {-
 -- |The tag type used to build the map.
