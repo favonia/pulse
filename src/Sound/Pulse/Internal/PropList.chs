@@ -16,7 +16,7 @@ data RawPropList
 
 {#fun proplist_new as ^ {} -> `RawPropListPtr' id #}
 
-{#fun proplist_free as ^ {id `RawPropListPtr' } -> `()' #}
+{#fun proplist_free as ^ {id `RawPropListPtr' } -> `()' id #}
 
 {#fun proplist_sets as ^ {id `RawPropListPtr', withUTF8CString* `String', withUTF8CString* `String'} -> `Int' #}
 

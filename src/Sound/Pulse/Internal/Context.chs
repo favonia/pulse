@@ -11,7 +11,7 @@ import Sound.Pulse.Internal.C2HS
 {#import Sound.Pulse.Internal.Def #}
 {#import Sound.Pulse.Internal.Operation #}
 {#import Sound.Pulse.Internal.MainLoopApi #}
-import Sound.Pulse.Internal.PropList
+{#import Sound.Pulse.Internal.PropList #}
 
 #include <pulse/context.h>
 
@@ -22,9 +22,9 @@ type RawContextSuccessCallback a = RawContextPtr -> CInt -> RawUserData a -> IO 
 data RawContext
 {#pointer *pa_context as RawContextPtr -> RawContext #}
 
-{#fun context_new as ^ {id `MainLoopApiPtr', withUTF8CString* `String'} -> `RawContextPtr' id #}
+{#fun context_new_with_proplist as ^ {id `MainLoopApiPtr', withUTF8CString* `String', id `RawPropListPtr'} -> `RawContextPtr' id #}
 
-{#fun context_unref as ^ {id `RawContextPtr'} -> `()' #}
+{#fun context_unref as ^ {id `RawContextPtr'} -> `()' id #}
 
 {#fun context_ref as ^ {id `RawContextPtr'} -> `RawContextPtr' id #}
 
@@ -32,7 +32,7 @@ data RawContext
     { id `RawContextPtr'
     , id `FunPtr (RawContextNotifyCallback a)'
     , castMaybeStablePtrToPtr `UserData a'
-    } -> `()' #}
+    } -> `()' id #}
 
 {#fun context_is_pending as ^ {id `RawContextPtr'} -> `Int' #}
 
@@ -45,7 +45,7 @@ data RawContext
     , id `SpawnApiPtr'
     } -> `Int' #}
 
-{#fun context_disconnect as ^ {id `RawContextPtr' } -> `()' #}
+{#fun context_disconnect as ^ {id `RawContextPtr' } -> `()' id #}
 
 {#fun context_drain as ^
     { id `RawContextPtr'
