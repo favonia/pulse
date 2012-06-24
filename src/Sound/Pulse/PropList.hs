@@ -23,6 +23,8 @@ module Sound.Pulse.PropList
     , PropList
     , peekRawPropList
     , withRawPropList
+    , newRawPropList
+    , freeRawPropList
     ) where
 
 import Data.Maybe (fromJust)
@@ -66,15 +68,19 @@ peekRawPropList raw = with nullPtr $ \state -> do
 
 -- | Marshal a 'PropList' into raw representation.
 withRawPropList :: PropList -> (RawPropListPtr -> IO a) -> IO a
-withRawPropList pl code =
-    bracket
-        (do
-            rawPl <- proplistNew
-            forM_ (toList pl) $ uncurry (proplistSets rawPl) . toKeyValue
-            return rawPl
-        )
-        proplistFree
-        code
+withRawPropList pl = bracket (newRawPropList pl) freeRawPropList
+
+-- | Alloc a raw 'PropList'.
+--   Users are responsible of using 'freeRawPropList' to free the resource.
+newRawPropList :: PropList -> IO RawPropListPtr
+newRawPropList pl = do
+    rawPl <- proplistNew
+    forM_ (toList pl) $ uncurry (proplistSets rawPl) . toKeyValue
+    return rawPl
+
+-- | Free the allocated raw 'PropList'.
+freeRawPropList :: RawPropListPtr -> IO ()
+freeRawPropList = proplistFree
 
 {-
 -- |The tag type used to build the map.
