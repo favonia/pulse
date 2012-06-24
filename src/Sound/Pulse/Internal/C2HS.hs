@@ -118,12 +118,12 @@ combineBitMasks = foldl (.|.) 0 . map (fromIntegral . fromEnum)
 type UserData a = Maybe (StablePtr a)
 type RawUserData a = Ptr ()
 
-castMaybeStablePtrToPtr :: UserData a -> RawUserData a
+castMaybeStablePtrToPtr :: Maybe (StablePtr a) -> Ptr ()
 castMaybeStablePtrToPtr Nothing = nullPtr
 castMaybeStablePtrToPtr (Just p) = castStablePtrToPtr p
 
 nullible :: (Ptr a -> b) -> Ptr a -> Maybe b
 nullible conv ptr = if ptr == nullPtr then Nothing else Just $ conv ptr
 
-castPtrToMaybeStable :: RawUserData a -> UserData a
+castPtrToMaybeStable :: Ptr () -> Maybe (StablePtr a)
 castPtrToMaybeStable = nullible castPtrToStablePtr
