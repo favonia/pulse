@@ -1,7 +1,4 @@
-{-# LANGUAGE CPP #-}
-#if __GLASGOW_HASKELL__ >= 702
 {-# LANGUAGE Safe #-}
-#endif
 {-# LANGUAGE ForeignFunctionInterface, EmptyDataDecls #-}
 
 {#context prefix = "pa"#}
@@ -9,11 +6,7 @@
 module Sound.Pulse.Internal.PropList where
 
 import Foreign.C
-#if __GLASGOW_HASKELL__ >= 702
 import Foreign.Safe
-#else
-import Foreign
-#endif
 import Sound.Pulse.Internal.C2HS
 
 #include <pulse/proplist.h>
@@ -29,17 +22,6 @@ data RawPropList
 
 {#fun proplist_gets as ^ {id `RawPropListPtr', withUTF8CString* `String'} -> `Maybe String' peekNullableUTF8CString* #}
 
-{#fun proplist_unset as ^ {id `RawPropListPtr', withUTF8CString* `String'} -> `Int' #}
-
 type PropListIterateState = Ptr ()
 {#fun proplist_iterate as ^ {id `RawPropListPtr', id `Ptr PropListIterateState'} -> `Maybe String' peekNullableUTF8CString* #}
 
-{#fun proplist_contains as ^ {id `RawPropListPtr', withUTF8CString* `String'} -> `Int' #}
-
-{#fun proplist_clear as ^ {id `RawPropListPtr'} -> `()' #}
-
-{#fun proplist_size as ^ {id `RawPropListPtr'} -> `Int' #}
-
-{#fun proplist_isempty as ^ {id `RawPropListPtr'} -> `Bool' #}
-
-{#fun proplist_equal as ^ {id `RawPropListPtr', id `RawPropListPtr'} -> `Int' #}
