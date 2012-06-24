@@ -30,6 +30,8 @@ Library
         Sound.Pulse.PropList.Quote
         Sound.Pulse.Volume
         Sound.Pulse.Internal
+        Sound.Pulse.Internal.TimeVal
+        Sound.Pulse.Internal.MainLoopApi
         Sound.Pulse.Internal.Def
         Sound.Pulse.Internal.Operation
         Sound.Pulse.Internal.ChannelMap
