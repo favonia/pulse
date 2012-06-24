@@ -1,7 +1,4 @@
-{-# LANGUAGE CPP #-}
-#if __GLASGOW_HASKELL__ >= 702
 {-# LANGUAGE Safe #-}
-#endif
 {- |
 Module      :  Sound.Pulse.Internal.C2HS
 License     :  BSD3
@@ -72,16 +69,8 @@ where
 
 import Control.Monad
 import Foreign.C
-#if __GLASGOW_HASKELL__ >= 702
 import Foreign.Safe
-#else
-import Foreign
-#endif
-#if __GLASGOW_HASKELL__ >= 702
 import qualified GHC.Foreign as GHC
-#else
-import Codec.Binary.UTF8.String (encode, decode)
-#endif
 import GHC.IO.Encoding (utf8)
 
 cIntConv :: (Integral a, Integral b) => a -> b
@@ -102,7 +91,6 @@ cToEnum = toEnum . cIntConv
 cFromEnum :: (Enum e, Integral i) => e -> i
 cFromEnum = cIntConv . fromEnum
 
-#if __GLASGOW_HASKELL__ >= 702
 peekUTF8CString :: CString -> IO String
 peekUTF8CString = GHC.peekCString utf8
 
@@ -111,19 +99,6 @@ withUTF8CString = GHC.withCString utf8
 
 withUTF8CStringLen :: String -> (CStringLen -> IO a) -> IO a
 withUTF8CStringLen = GHC.withCStringLen utf8
-#else
-nul :: CChar
-nul = 0
-
-peekUTF8CString :: CString -> IO String
-peekUTF8CString = liftM (decode . map cIntConv) . peekArray0 nul
-
-withUTF8CString :: String -> (CString -> IO a) -> IO a
-withUTF8CString = withArray0 nul . map cIntConv . encode
-
-withUTF8CStringLen :: String -> (CStringLen -> IO a) -> IO a
-withUTF8CStringLen str = withArrayLen (map cIntConv . encode $ str) . flip . curry
-#endif
 
 nullibleM :: (Ptr a -> IO b) -> Ptr a -> IO (Maybe b)
 nullibleM peeker ptr = if ptr == nullPtr

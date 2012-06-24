@@ -9,7 +9,7 @@ Maintainer:          favonia@gmail.com, mno2.csie@gmail.com
 Category:            Sound
 
 Build-type:          Simple
-Cabal-version:       >=1.8
+Cabal-version:       >=1.10.2.0
 
 Homepage:            http://favonia.github.com/pulse/
 Bug-reports:         https://github.com/favonia/pulse/issues
@@ -18,12 +18,16 @@ Source-Repository    head
     Location: git@github.com:favonia/pulse.git
 
 Library
+    if impl(ghc < 7.4)
+        Buildable: False
+    Default-language:
+        Haskell2010
     Ghc-options:
         -Wall
     Hs-source-dirs:
         src
     Pkgconfig-depends:
-        libpulse >= 1.0 && < 1.2
+        libpulse >= 1.0 && < 3.0
     Exposed-modules:
         Sound.Pulse.Monad
         Sound.Pulse.PropList
@@ -44,22 +48,24 @@ Library
     Other-modules:
         Sound.Pulse.PropList.Internal
         Sound.Pulse.Internal.C2HS
-    if impl(ghc < 7.2)
-        Build-depends:
-            utf8-string == 0.3.*
     Build-depends:
-        base >= 3 && < 5,
-        mtl >= 2 && < 2.2,
+        base >= 4 && < 5,
+        mtl == 2.1.*,
+        stm == 2.3.*,
         syb == 0.3.*,
         ConfigFile == 1.1.*,
         -- TH 2.7.* is not buildable under GHC 7.2
-        template-haskell >= 2.4 && < 2.8,
+        template-haskell >= 2.6 && < 2.8,
         dependent-map == 0.1.*,
         dependent-sum == 0.2.*
     Build-tools:
         c2hs, hsc2hs
 
 Test-Suite test-pulse
+    if impl(ghc < 7.2)
+        Buildable: False
+    Default-language:
+        Haskell2010
     Type:
         exitcode-stdio-1.0
     Hs-source-dirs: src tests
@@ -67,13 +73,12 @@ Test-Suite test-pulse
         Test.hs
     Ghc-options:
         -threaded
-    if impl(ghc < 7.2)
-        Build-depends:
-            utf8-string == 0.3.*
     Build-depends:
-        base >= 3 && < 5,
-        mtl >= 2 && < 2.2,
-        template-haskell >= 2.4 && < 2.8,
+        base >= 4 && < 5,
+        mtl == 2.1.*,
+        stm == 2.3.*,
+        -- TH 2.7.* is not buildable under GHC 7.2
+        template-haskell >= 2.6 && < 2.8,
         dependent-map == 0.1.*,
         dependent-sum == 0.2.*,
         QuickCheck == 2.4.*,

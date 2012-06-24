@@ -1,7 +1,4 @@
-{-# LANGUAGE CPP #-}
-#if __GLASGOW_HASKELL__ >= 702
 {-# LANGUAGE Trustworthy #-}
-#endif
 {-# LANGUAGE GADTs, TypeFamilies, TemplateHaskell #-}
 {- |
 Module      :  Sound.Pulse.PropList
@@ -32,11 +29,7 @@ import Data.Maybe (fromJust)
 import System.IO (fixIO)
 import Control.Monad
 import Control.Monad.Trans (MonadIO(..))
-#if __GLASGOW_HASKELL__ >= 702
 import Foreign.Safe
-#else
-import Foreign
-#endif
 import Data.Dependent.Map
 
 import Sound.Pulse.Internal.PropList
