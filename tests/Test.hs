@@ -1,7 +1,7 @@
 
 module Main where
 
-import Sound.Pulse
+import Sound.Pulse.Monad
 import Test.QuickCheck
 
 main = do

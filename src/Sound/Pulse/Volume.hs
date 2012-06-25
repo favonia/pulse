@@ -16,7 +16,7 @@ module Sound.Pulse.Volume
     , volumeNorm
     ) where
 
-import Sound.Pulse.Internal (Volume)
+import Sound.Pulse.Internal.Volume (Volume)
 
 -- | The normal volume (100%)
 volumeNorm :: Volume

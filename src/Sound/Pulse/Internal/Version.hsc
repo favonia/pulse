@@ -1,4 +1,7 @@
+{-# LANGUAGE CPP #-}
+#if __GLASGOW_HASKELL__ >= 702
 {-# LANGUAGE Safe #-}
+#endif
 module Sound.Pulse.Internal.Version where
 
 #include <pulse/version.h>

@@ -20,7 +20,7 @@ module Sound.Pulse.Monad
 import Control.Monad.State
 import Data.String (IsString(..))
 
-import Sound.Pulse.Internal
+import Sound.Pulse.Internal.Context
 
 -- | The name of the server the monad is connecting to.
 data ServerName = DefaultServer | Named String

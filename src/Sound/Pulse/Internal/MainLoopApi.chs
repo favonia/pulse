@@ -1,11 +1,18 @@
+{-# LANGUAGE CPP #-}
+#if __GLASGOW_HASKELL__ >= 702
 {-# LANGUAGE Safe #-}
+#endif
 {-# LANGUAGE ForeignFunctionInterface, EmptyDataDecls #-}
 
 {#context prefix = "pa"#}
 
 module Sound.Pulse.Internal.MainLoopApi where
 
+#if __GLASGOW_HASKELL__ >= 702
 import Foreign.Safe
+#else
+import Foreign
+#endif
 import Foreign.C
 {#import Sound.Pulse.Internal.TimeVal #}
 
