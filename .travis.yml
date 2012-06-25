@@ -2,5 +2,3 @@ language: haskell
 install:
     - sudo apt-get install libpulse-dev
     - cabal install
-notifications:
-    email: false
