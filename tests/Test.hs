@@ -1,12 +1,11 @@
 
 module Main where
 
+import Control.Monad.IO.Class (MonadIO(..))
 import Sound.Pulse.Monad
 import Test.QuickCheck
 
-main = do
-  runPulse DefaultServer DoNotWaitForDaemon code
-  runPulse DefaultServer WaitForDaemon code
+main = runPulseT defConfig code
 
-code :: Monad a => Pulse a ()
-code = return ()
+code :: MonadIO a => PulseT a ()
+code = liftIO $ putStrLn "[code]"

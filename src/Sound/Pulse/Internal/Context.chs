@@ -43,7 +43,7 @@ data RawContext
 
 {#fun context_is_pending as ^ {id `RawContextPtr'} -> `Int' #}
 
-{#fun context_get_state as ^ {id `RawContextPtr' } -> `Int' #}
+{#fun context_get_state as ^ {id `RawContextPtr' } -> `ContextState' cToEnum #}
 
 {#fun context_connect as ^
     { id `RawContextPtr'
@@ -58,7 +58,7 @@ data RawContext
     { id `RawContextPtr'
     , id `FunPtr (RawContextNotifyCallback a)'
     , castMaybeStablePtrToPtr `UserData a'
-    } -> `RawOperationPtr' id #}
+    } -> `Maybe RawOperationPtr' toMaybePtr #}
 
 {#fun context_set_default_sink as ^
     { id `RawContextPtr'

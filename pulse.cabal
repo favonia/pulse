@@ -47,6 +47,9 @@ Library
         Sound.Pulse.Internal.Volume
         Sound.Pulse.Internal.C2HS
         Sound.Pulse.PropList.Internal
+        Sound.Pulse.Monad.Internal
+        Sound.Pulse.Monad.Internal.MainLoop
+        Sound.Pulse.Monad.Internal.Connection
     Build-depends:
         base >= 4 && < 5,
         transformers >= 0.2 && < 0.4,
@@ -71,6 +74,7 @@ Test-suite test-pulse
     Hs-source-dirs: tests
     Build-depends:
         base >= 4 && < 5,
+        transformers >= 0.2 && < 0.4,
         QuickCheck == 2.4.*,
         pulse
     Main-is:

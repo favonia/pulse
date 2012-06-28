@@ -19,26 +19,26 @@ import Sound.Pulse.Internal.C2HS
 
 #include <pulse/mainloop.h>
 
-data MainLoop
-{#pointer *mainloop as MainLoopPtr -> MainLoop #}
+data RawMainLoop
+{#pointer *mainloop as RawMainLoopPtr -> RawMainLoop #}
 
-{#fun mainloop_new as ^ {} -> `MainLoopPtr' id #}
+{#fun mainloop_new as ^ {} -> `RawMainLoopPtr' id #}
 
-{#fun mainloop_free as ^ {id `MainLoopPtr'} -> `()' id #}
+{#fun mainloop_free as ^ {id `RawMainLoopPtr'} -> `()' id #}
 
-{#fun mainloop_prepare as ^ {id `MainLoopPtr', `Int'} -> `Int' #}
+{#fun mainloop_prepare as ^ {id `RawMainLoopPtr', `Int'} -> `Int' #}
 
-{#fun mainloop_poll as ^ {id `MainLoopPtr'} -> `Int' #}
+{#fun mainloop_poll as ^ {id `RawMainLoopPtr'} -> `Int' #}
 
-{#fun mainloop_dispatch as ^ {id `MainLoopPtr'} -> `Int' #}
+{#fun mainloop_dispatch as ^ {id `RawMainLoopPtr'} -> `Int' #}
 
-{#fun mainloop_get_retval as ^ {id `MainLoopPtr'} -> `Int' #}
+{#fun mainloop_get_retval as ^ {id `RawMainLoopPtr'} -> `Int' #}
 
-{#fun mainloop_iterate as ^ {id `MainLoopPtr', cFromBool `Bool', withIntConv* `Int' peekIntConv*} -> `Int' cIntConv #}
+{#fun mainloop_iterate as ^ {id `RawMainLoopPtr', cFromBool `Bool', withIntConv* `Int' peekIntConv*} -> `Int' cIntConv #}
 
-{#fun mainloop_get_api as ^ {id `MainLoopPtr'} -> `MainLoopApiPtr' id #}
+{#fun mainloop_get_api as ^ {id `RawMainLoopPtr'} -> `MainLoopApiPtr' id #}
 
-{#fun mainloop_quit as ^ {id `MainLoopPtr', `Int'} -> `()' id #}
+{#fun mainloop_quit as ^ {id `RawMainLoopPtr', `Int'} -> `()' id #}
 
-{#fun mainloop_wakeup as ^ {id `MainLoopPtr'} -> `()' id #}
+{#fun mainloop_wakeup as ^ {id `RawMainLoopPtr'} -> `()' id #}
 

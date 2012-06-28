@@ -57,17 +57,18 @@ module Sound.Pulse.Internal.C2HS
     , cToBool
     , cToEnum
     , cFromEnum
+    , combineBitMasks
+    , nullible
+    , nullibleM
+    , toMaybePtr
     , peekUTF8CString
     , withUTF8CString
     , withUTF8CStringLen
-    , nullibleM
     , peekNullableUTF8CString
     , withNullableUTF8CString
-    , combineBitMasks
     , UserData
     , RawUserData
     , castMaybeStablePtrToPtr
-    , nullible
     , castPtrToMaybeStable
     )
 where
@@ -110,6 +111,20 @@ cToEnum = toEnum . cIntConv
 cFromEnum :: (Enum e, Integral i) => e -> i
 cFromEnum = cIntConv . fromEnum
 
+combineBitMasks :: (Enum a, Bits b) => [a] -> b
+combineBitMasks = foldl (.|.) 0 . map (fromIntegral . fromEnum)
+
+nullible :: (Ptr a -> b) -> Ptr a -> Maybe b
+nullible conv ptr = if ptr == nullPtr then Nothing else Just $ conv ptr
+
+nullibleM :: (Ptr a -> IO b) -> Ptr a -> IO (Maybe b)
+nullibleM peeker ptr = if ptr == nullPtr
+    then return Nothing
+    else liftM Just $ peeker ptr
+
+toMaybePtr :: Ptr a -> Maybe (Ptr a)
+toMaybePtr = nullible id
+
 #if __GLASGOW_HASKELL__ >= 702
 peekUTF8CString :: CString -> IO String
 peekUTF8CString = GHC.peekCString utf8
@@ -133,11 +148,6 @@ withUTF8CStringLen :: String -> (CStringLen -> IO a) -> IO a
 withUTF8CStringLen str = withArrayLen (map cIntConv . encode $ str) . flip . curry
 #endif
 
-nullibleM :: (Ptr a -> IO b) -> Ptr a -> IO (Maybe b)
-nullibleM peeker ptr = if ptr == nullPtr
-    then return Nothing
-    else liftM Just $ peeker ptr
-
 peekNullableUTF8CString :: CString -> IO (Maybe String)
 peekNullableUTF8CString = nullibleM peekUTF8CString
 
@@ -145,18 +155,12 @@ withNullableUTF8CString :: Maybe String -> (CString -> IO a) -> IO a
 withNullableUTF8CString Nothing = ($ nullPtr)
 withNullableUTF8CString (Just s) = withUTF8CString s
 
-combineBitMasks :: (Enum a, Bits b) => [a] -> b
-combineBitMasks = foldl (.|.) 0 . map (fromIntegral . fromEnum)
-
 type UserData a = Maybe (StablePtr a)
 type RawUserData a = Ptr ()
 
 castMaybeStablePtrToPtr :: Maybe (StablePtr a) -> Ptr ()
 castMaybeStablePtrToPtr Nothing = nullPtr
 castMaybeStablePtrToPtr (Just p) = castStablePtrToPtr p
-
-nullible :: (Ptr a -> b) -> Ptr a -> Maybe b
-nullible conv ptr = if ptr == nullPtr then Nothing else Just $ conv ptr
 
 castPtrToMaybeStable :: Ptr () -> Maybe (StablePtr a)
 castPtrToMaybeStable = nullible castPtrToStablePtr

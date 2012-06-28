@@ -1,4 +1,7 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE CPP #-}
+#if __GLASGOW_HASKELL__ >= 702
+{-# LANGUAGE Safe #-}
+#endif
 {- |
 Module      :  Sound.Pulse.Monad
 Copyright   :  (c) Favonia
@@ -11,35 +14,24 @@ Portability :  non-portable (GHC only)
 This module provides the monadic interface.
 -}
 module Sound.Pulse.Monad
-    ( ServerName (..)
-    , ConnectionMode (..)
-    , Pulse
-    , runPulse
+    (
+    -- * Monad Transformer
+    PulseT,
+    runPulseT,
+    -- * Configuration
+    Config(..),
+    defConfig,
+    ServerName(..),
+    ConnMode(..),
     ) where
 
-import Control.Monad.Trans.State
-import Data.String (IsString(..))
+import Control.Monad.Trans.Reader (ReaderT(..))
+import Control.Monad.IO.Class (MonadIO(..))
+import Control.Monad.CatchIO (MonadCatchIO(..), bracket)
 
-import Sound.Pulse.Internal.Context
+import Sound.Pulse.Monad.Internal
+import Sound.Pulse.Monad.Internal.Connection
 
--- | The name of the server the monad is connecting to.
-data ServerName = DefaultServer | Named String
-    deriving (Eq, Ord, Show)
-
-instance IsString ServerName where
-    fromString = Named
-
--- | The mode of connection.
-data ConnectionMode = WaitForDaemon       -- Wait for the daemon to appear.
-                    | DoNotWaitForDaemon  -- Fails right away.
-
--- | The type of the context. TODO: Fill in something real here.
-newtype Context = Context ()
-
--- | The monad wrapping oprations to a PulseAudio server.
-newtype Pulse m n = Pulse (StateT Context m n)
-    deriving (Functor, Monad)
-
--- | Run the oprations against the server.
-runPulse :: Monad m => ServerName -> ConnectionMode -> Pulse m n -> m n
-runPulse name mode (Pulse code) = evalStateT code (Context ())
+-- | Run the 'PulseT'.
+runPulseT :: MonadCatchIO m => Config -> PulseT m n -> m n
+runPulseT conf (PulseT (ReaderT userCode)) = bracket (liftIO $ newConn conf) (liftIO . freeConn) userCode
