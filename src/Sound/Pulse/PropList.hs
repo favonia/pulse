@@ -15,25 +15,32 @@ Portability :  non-portable (GHC only)
 This module provides the high-level property list interface.
 -}
 module Sound.Pulse.PropList
-    ( AccessMode(..)
-    , Bus(..)
-    , Class(..)
-    , FormFactor(..)
-    , MouseButton(..)
-    , Role(..)
-    , StringList
-    , PropTag(..)
-    , PropList
-    , peekRawPropList
-    , withRawPropList
-    , newRawPropList
-    , freeRawPropList
+    (
+    -- * High-level PropList
+    PropList,
+    module Data.Dependent.Map,
+    PropTag(..),
+    AccessMode(..),
+    Bus(..),
+    Class(..),
+    FormFactor(..),
+    MouseButton(..),
+    Role(..),
+    StringList,
+    -- * Marshalling
+    RawPropList,
+    RawPropListPtr,
+    peekRawPropList,
+    withRawPropList,
+    newRawPropList,
+    freeRawPropList,
     ) where
 
 import Data.Maybe (fromJust)
 import System.IO (fixIO)
 import Control.Monad
-import Control.Exception.Base (bracket)
+import Control.Monad.CatchIO (MonadCatchIO(..), bracket)
+import Control.Monad.IO.Class (MonadIO(..))
 #if __GLASGOW_HASKELL__ >= 702
 import Foreign.Safe
 #else
@@ -61,8 +68,8 @@ $(genFromKeyValue)
 type PropList = DMap PropTag
 
 -- | Construct a 'PropList' out of the raw representation.
-peekRawPropList :: RawPropListPtr -> IO PropList
-peekRawPropList raw = with nullPtr $ \state -> do
+peekRawPropList :: MonadIO m => RawPropListPtr -> m PropList
+peekRawPropList raw = liftIO $ with nullPtr $ \state -> do
     pl <- fixIO $ \loop -> do
         key' <- proplistIterate raw state
         case key' of
@@ -74,20 +81,20 @@ peekRawPropList raw = with nullPtr $ \state -> do
     return $ fromList pl
 
 -- | Marshal a 'PropList' into raw representation.
-withRawPropList :: PropList -> (RawPropListPtr -> IO a) -> IO a
+withRawPropList :: MonadCatchIO m => PropList -> (RawPropListPtr -> m a) -> m a
 withRawPropList pl = bracket (newRawPropList pl) freeRawPropList
 
 -- | Alloc a raw 'PropList'.
 --   Users are responsible of using 'freeRawPropList' to free the resource.
-newRawPropList :: PropList -> IO RawPropListPtr
-newRawPropList pl = do
+newRawPropList :: MonadIO m => PropList -> m RawPropListPtr
+newRawPropList pl = liftIO $ do
     rawPl <- proplistNew
     forM_ (toList pl) $ uncurry (proplistSets rawPl) . toKeyValue
     return rawPl
 
 -- | Free the allocated raw 'PropList'.
-freeRawPropList :: RawPropListPtr -> IO ()
-freeRawPropList = proplistFree
+freeRawPropList :: MonadIO m => RawPropListPtr -> m ()
+freeRawPropList = liftIO . proplistFree
 
 {-
 -- |The tag type used to build the map.

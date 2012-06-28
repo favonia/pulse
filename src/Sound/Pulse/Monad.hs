@@ -17,7 +17,7 @@ module Sound.Pulse.Monad
     , runPulse
     ) where
 
-import Control.Monad.State
+import Control.Monad.Trans.State
 import Data.String (IsString(..))
 
 import Sound.Pulse.Internal.Context
@@ -38,7 +38,7 @@ newtype Context = Context ()
 
 -- | The monad wrapping oprations to a PulseAudio server.
 newtype Pulse m n = Pulse (StateT Context m n)
-    deriving (Functor, Monad, MonadFix, MonadIO, MonadPlus)
+    deriving (Functor, Monad)
 
 -- | Run the oprations against the server.
 runPulse :: Monad m => ServerName -> ConnectionMode -> Pulse m n -> m n
