@@ -50,6 +50,8 @@ Manuel M T Chakravarty, released under BSD-like license.
 
 module Sound.Pulse.Internal.C2HS
     ( cIntConv
+    , withIntConv
+    , peekIntConv
     , cFloatConv
     , cFromBool
     , cToBool
@@ -86,6 +88,12 @@ import Codec.Binary.UTF8.String (encode, decode)
 
 cIntConv :: (Integral a, Integral b) => a -> b
 cIntConv = fromIntegral
+
+withIntConv :: (Storable b, Integral a, Integral b) => a -> (Ptr b -> IO c) -> IO c
+withIntConv = with . cIntConv
+
+peekIntConv :: (Storable a, Integral a, Integral b) => Ptr a -> IO b
+peekIntConv = liftM cIntConv . peek
 
 cFloatConv :: (RealFloat a, RealFloat b) => a -> b
 cFloatConv = realToFrac
