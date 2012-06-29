@@ -12,6 +12,7 @@ This module provides Template Haskell generators for 'PropTag'.
 -}
 module Sound.Pulse.PropList.Internal where
 
+import qualified Data.ByteString as B
 import Language.Haskell.TH
 import Data.Dependent.Sum
 import Data.GADT.Compare
@@ -81,6 +82,18 @@ propSpecs =
     , PropSpec "window.x11.screen"  "WindowX11Screen"   ''Int         'undefined  'undefined
     , PropSpec "window.x11.monitor" "WindowX11Monitor"  ''Int         'undefined  'undefined
     , PropSpec "window.x11.xid"     "WindowX11Xid"      ''Int         'undefined  'undefined
+    , PropSpec "application.name"           "ApplicationName"          ''String        'undefined  'undefined
+    , PropSpec "application.id"             "ApplicationId"            ''String        'undefined  'undefined
+    , PropSpec "application.version"        "ApplicationVersion"       ''String        'undefined  'undefined
+    , PropSpec "application.icon"           "ApplicationIcon"          ''B.ByteString  'undefined  'undefined
+    , PropSpec "application.icon_name"      "ApplicationIconName"      ''String        'undefined  'undefined
+    , PropSpec "application.language"       "ApplicationLanguage"      ''String        'undefined  'undefined
+    , PropSpec "application.process.id"     "ApplicationProcessId"     ''Int           'undefined  'undefined
+    , PropSpec "application.process.binary" "ApplicationProcessBinary" ''String        'undefined  'undefined
+    , PropSpec "application.process.user"   "ApplicationProcessUser"   ''String        'undefined  'undefined
+    , PropSpec "application.process.host"   "ApplicationProcessHost"   ''String        'undefined  'undefined
+    , PropSpec "application.process.machine_id" "ApplicationProcessMachineId" ''String 'undefined  'undefined
+    , PropSpec "application.process.session_id" "ApplicationProcessSessionId" ''Int    'undefined  'undefined
     ]
 
 -- |Generate 'PropTag'
