@@ -20,23 +20,23 @@ import Sound.Pulse.Internal.C2HS
 
 #include <pulse/def.h>
 
-{#enum context_state as ContextState {underscoreToCase} deriving (Show, Eq) #}
+{#enum context_state as ^ {underscoreToCase} deriving (Show, Eq) #}
 
-{#enum stream_state as StreamState {underscoreToCase} deriving (Show, Eq) #}
+{#enum stream_state as ^ {underscoreToCase} deriving (Show, Eq) #}
 
-{#enum operation_state as OperationState {underscoreToCase} deriving (Show, Eq) #}
+{#enum operation_state as ^ {underscoreToCase} deriving (Show, Eq) #}
 
-{#enum context_flags as ContextFlags {underscoreToCase} deriving (Show, Eq) #}
+{#enum context_flags as ^ {underscoreToCase} deriving (Show, Eq) #}
 
-{#enum device_type as DeviceType {underscoreToCase} deriving (Show, Eq) #}
+{#enum device_type as ^ {underscoreToCase} deriving (Show, Eq) #}
 
-{#enum stream_direction as StreamDirection {underscoreToCase} deriving (Show, Eq) #}
+{#enum stream_direction as ^ {underscoreToCase} deriving (Show, Eq) #}
 
-{#enum stream_flags as StreamFlags {underscoreToCase} deriving (Show, Eq) #}
+{#enum stream_flags as ^ {underscoreToCase} deriving (Show, Eq) #}
 
-{#enum subscription_mask as SubscriptionMask {underscoreToCase} deriving (Show, Eq) #}
+{#enum subscription_mask as ^ {underscoreToCase} deriving (Show, Eq) #}
 
-{#enum subscription_event_type_t as SubscriptionEventType {underscoreToCase} deriving (Show, Eq) #}
+{#enum subscription_event_type_t as ^ {underscoreToCase} deriving (Show, Eq) #}
 
 data TimingInfo
 {#pointer *timing_info as TimingInfoPtr -> TimingInfo #}
@@ -69,12 +69,12 @@ data SpawnApi
 {#pointer *spawn_api as SpawnApiPtr -> SpawnApi #}
 
 
-{#enum seek_mode as SeekMode {underscoreToCase} deriving (Show, Eq) #}
+{#enum seek_mode as ^ {underscoreToCase} deriving (Show, Eq) #}
 
-{#enum sink_flags as SinkFlags {underscoreToCase} deriving (Show, Eq) #}
+{#enum sink_flags as ^ {underscoreToCase} deriving (Show, Eq) #}
 
-{#enum sink_state as SinkState {underscoreToCase} deriving (Show, Eq) #}
+{#enum sink_state as ^ {underscoreToCase} deriving (Show, Eq) #}
 
-{#enum source_flags as SourceFlags {underscoreToCase} deriving (Show, Eq) #}
+{#enum source_flags as ^ {underscoreToCase} deriving (Show, Eq) #}
 
-{#enum source_state as SourceState {underscoreToCase} deriving (Show, Eq) #}
+{#enum source_state as ^ {underscoreToCase} deriving (Show, Eq) #}

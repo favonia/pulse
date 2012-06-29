@@ -28,4 +28,4 @@ data RawOperation
 
 {#fun operation_cancel as ^ {id `RawOperationPtr' } -> `()' id #}
 
-{#fun operation_get_state as ^ {id `RawOperationPtr' } -> `Int' #}
+{#fun operation_get_state as ^ {id `RawOperationPtr' } -> `OperationState' cToEnum #}
