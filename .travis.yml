@@ -1,6 +1,6 @@
 language: haskell
 install:
-    - sudo apt-get install libpulse-dev pulseaudio dbus-x11
+    - sudo apt-get install libpulse-dev pulseaudio dbus consolekit
     - pulseaudio -vvvv
     - pulseaudio --start
     - cabal install
