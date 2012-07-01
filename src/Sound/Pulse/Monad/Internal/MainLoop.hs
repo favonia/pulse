@@ -28,7 +28,7 @@ module Sound.Pulse.Monad.Internal.MainLoop
     blockLoop,
     -- * Operation registering
     wrapRawOp,
-    OperationState,
+    OperationState(..),
     ) where
 
 import Data.Maybe (catMaybes)
