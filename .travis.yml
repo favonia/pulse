@@ -1,4 +1,9 @@
 language: haskell
 install:
     - sudo apt-get install libpulse-dev
+    - pulseaudio --kill
+    - killall pulseaudio
+    - killall -9 pulseaudio
+    - rm -rf ~/.pulse*
+    - rm -rf /tmp/pulse*
     - cabal install
