@@ -80,6 +80,11 @@ peekRawPropList raw = liftIO $ with nullPtr $ \state -> do
                 return $ fromKeyValue key value : loop
     return $ fromList pl
 
+
+parseRawPropList :: MonadIO m => String -> m PropList
+parseRawPropList strRep = (liftIO $ proplistFromString strRep) >>= peekRawPropList
+
+
 -- | Marshal a 'PropList' into raw representation.
 withRawPropList :: MonadCatchIO m => PropList -> (RawPropListPtr -> m a) -> m a
 withRawPropList pl = bracket (newRawPropList pl) freeRawPropList
@@ -95,53 +100,3 @@ newRawPropList pl = liftIO $ do
 -- | Free the allocated raw 'PropList'.
 freeRawPropList :: MonadIO m => RawPropListPtr -> m ()
 freeRawPropList = liftIO . proplistFree
-
-{-
--- |The tag type used to build the map.
-data PropTag a where
-
-  ApplicationName :: PropTag String
-  ApplicationId :: PropTag String
-  ApplicationVersion :: PropTag String
-  ApplicationIconName :: PropTag String
-  ApplicationLanguage :: PropTag String
-  ApplicationProcessId :: PropTag Int -- process ID
-  ApplicationProcessBinary :: PropTag String
-  ApplicationProcessUser :: PropTag String
-  ApplicationProcessHost :: PropTag String
-  ApplicationProcessMachineId :: PropTag String
-  ApplicationProcessSessionId :: PropTag String
-
-  DeviceString :: PropTag String
-  DeviceApi :: PropTag String
-  DeviceDescription :: PropTag String
-  DeviceBusPath :: PropTag String
-  DeviceSerial :: PropTag String
-  DeviceVendorId :: PropTag Int -- FIXME : ??
-  DeviceVendorName :: PropTag String
-  DeviceProductId :: PropTag Int -- FIXME : Device ID
-  DeviceProductName :: PropTag String
-  DeviceClass :: PropTag Class
-  DeviceFormFactor :: PropTag String
-  DeviceBus :: PropTag Bus
-  DeviceIconName :: PropTag String
-  DeviceAccessMode :: PropTag AccessMode
-  DeviceMasterDevice :: PropTag String
-  DeviceBufferingBufferSize :: PropTag Int
-  DeviceBufferingFragmentSize :: PropTag Int
-  DeviceProfileName :: PropTag String
-  DeviceIntendedRoles :: PropTag [Role]
-  DeviceProfileDescription :: PropTag String
-
-  ModuleAuthor :: PropTag String
-  ModuleDescription :: PropTag String
-  ModuleUsage :: PropTag String
-  ModuleVersion :: PropTag String
-
-{- Not sure about this part
-  FormatSampleFormat :: PropTag String -- PCM, pa_sample_format_to_string()
-  FormatRate :: PropTag Int
-  FormatChannels :: PropTag Int
-  FormatChannelMap :: PropTag String -- PCM, pa_channel_map_snprint()
--}
--}

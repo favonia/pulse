@@ -32,3 +32,5 @@ data RawPropList
 type PropListIterateState = Ptr ()
 {#fun proplist_iterate as ^ {id `RawPropListPtr', id `Ptr PropListIterateState'} -> `Maybe String' peekNullableUTF8CString* #}
 
+{#fun proplist_from_string as ^ {withUTF8CString * `String'} -> `RawPropListPtr' id  #}
+

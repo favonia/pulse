@@ -12,6 +12,7 @@ This module provides Template Haskell generators for 'PropTag'.
 -}
 module Sound.Pulse.PropList.Internal where
 
+import qualified Data.String.Utils as U
 import Language.Haskell.TH
 import Data.Dependent.Sum
 import Data.GADT.Compare
@@ -39,48 +40,87 @@ data FormFactor = Internal | Speaker | Handset | Tv | Webcam | Microphone | Head
 -- |Button clicked in an event. Used in 'EventMouseButton'.
 data MouseButton = MouseLeft | MouseMiddle | MouseRight
 
+toRawMouseButton :: MouseButton -> String
+toRawMouseButton btn = case btn of MouseLeft   -> "0"
+                                   MouseMiddle -> "1"
+                                   MouseRight  -> "2"
+
+fromRawMouseButton :: String -> MouseButton
+fromRawMouseButton btnNoStr = case btnNoStr of "0" -> MouseLeft
+                                               "1" -> MouseMiddle 
+                                               "2" -> MouseRight 
+
 -- |Role of this media. Used in 'MediaRole' and 'DeviceIntendedRoles'.
 data Role = Video | Music | Game | Event | Phone | Animation | Production | A11y | Test
+
+toRawRole :: Role -> String
+toRawRole r = case r of Video -> "video"
+                        Music -> "music"
+                        Game  -> "game"
+                        Event -> "event"
+                        Phone -> "phone"
+                        Animation -> "animation"
+                        Production -> "production"
+                        A11y -> "a11y"
+                        Test -> "test"
+                        
+fromRawRole :: String -> Role
+fromRawRole roleStr = case roleStr of "video" -> Video
+                                      "music" -> Music
+                                      "game" -> Game
+                                      "event" -> Event
+                                      "phone" -> Phone
+                                      "animation" -> Animation
+                                      "production" -> Production
+                                      "a11y" -> A11y
+                                      "test" -> Test
 
 -- |List of strings. This type alias is created purely for our usage of Template Haskell.
 type StringList = [String]
 
+toRawWindowDesktop :: StringList -> String
+toRawWindowDesktop l = U.join "," l
+
+fromRawWindowDesktop :: String -> StringList
+fromRawWindowDesktop s = U.split "," s
+
+
 -- |Metadata for Template Haskell
 propSpecs :: [PropSpec]
 propSpecs =
-    [ PropSpec "media.name"         "MediaName"         ''String      'undefined  'undefined
-    , PropSpec "media.title"        "MediaTitle"        ''String      'undefined  'undefined
-    , PropSpec "media.artist"       "MediaArtist"       ''String      'undefined  'undefined
-    , PropSpec "media.copyright"    "MediaCopyright"    ''String      'undefined  'undefined
-    , PropSpec "media.software"     "MediaSoftware"     ''String      'undefined  'undefined
-    , PropSpec "media.language"     "MediaLanguage"     ''String      'undefined  'undefined
-    , PropSpec "media.filename"     "MediaFilename"     ''String      'undefined  'undefined
-    , PropSpec "media.icon_name"    "MediaIconName"     ''String      'undefined  'undefined
-    , PropSpec "media.role"         "MediaRole"         ''Role        'undefined  'undefined
-    , PropSpec "filter.want"        "FilterWant"        ''String      'undefined  'undefined
-    , PropSpec "filter.apply"       "FilterApply"       ''String      'undefined  'undefined
-    , PropSpec "filter.suppress"    "FilterSuppress"    ''String      'undefined  'undefined
-    , PropSpec "event.id"           "EventId"           ''String      'undefined  'undefined
-    , PropSpec "event.description"  "EventDescription"  ''String      'undefined  'undefined
-    , PropSpec "event.mouse.x"      "EventMouseX"       ''Int         'undefined  'undefined
-    , PropSpec "event.mouse.y"      "EventMouseY"       ''Int         'undefined  'undefined
-    , PropSpec "event.mouse.hpos"   "EventMouseHpos"    ''Double      'undefined  'undefined
-    , PropSpec "event.mouse.vpos"   "EventMouseVpos"    ''Double      'undefined  'undefined
-    , PropSpec "event.mouse.button" "EventMouseButton"  ''MouseButton 'undefined  'undefined
-    , PropSpec "window.name"        "WindowName"        ''String      'undefined  'undefined
-    , PropSpec "window.id"          "WindowId"          ''String      'undefined  'undefined
-    , PropSpec "window.icon_name"   "WindowIconName"    ''String      'undefined  'undefined
-    , PropSpec "window.x"           "WindowX"           ''Int         'undefined  'undefined
-    , PropSpec "window.y"           "WindowY"           ''Int         'undefined  'undefined
-    , PropSpec "window.width"       "WindowWidth"       ''Int         'undefined  'undefined
-    , PropSpec "window.height"      "WindowHeight"      ''Int         'undefined  'undefined
-    , PropSpec "window.hpos"        "WindowHpos"        ''Double      'undefined  'undefined
-    , PropSpec "window.vpos"        "WindowVpos"        ''Double      'undefined  'undefined
-    , PropSpec "window.desktop"     "WindowDesktop"     ''StringList  'undefined  'undefined
-    , PropSpec "window.x11.display" "WindowX11Display"  ''String      'undefined  'undefined
-    , PropSpec "window.x11.screen"  "WindowX11Screen"   ''Int         'undefined  'undefined
-    , PropSpec "window.x11.monitor" "WindowX11Monitor"  ''Int         'undefined  'undefined
-    , PropSpec "window.x11.xid"     "WindowX11Xid"      ''Int         'undefined  'undefined
+    [ PropSpec "media.name"         "MediaName"         ''String      'id         'id
+    , PropSpec "media.title"        "MediaTitle"        ''String      'id  'id
+    , PropSpec "media.artist"       "MediaArtist"       ''String      'id  'id
+    , PropSpec "media.copyright"    "MediaCopyright"    ''String      'id  'id
+    , PropSpec "media.software"     "MediaSoftware"     ''String      'id  'id
+    , PropSpec "media.language"     "MediaLanguage"     ''String      'id  'id
+    , PropSpec "media.filename"     "MediaFilename"     ''String      'id  'id
+    , PropSpec "media.icon_name"    "MediaIconName"     ''String      'id  'id
+    , PropSpec "media.role"         "MediaRole"         ''Role        'toRawRole  'fromRawRole
+    , PropSpec "filter.want"        "FilterWant"        ''String      'id  'id
+    , PropSpec "filter.apply"       "FilterApply"       ''String      'id  'id
+    , PropSpec "filter.suppress"    "FilterSuppress"    ''String      'id  'id
+    , PropSpec "event.id"           "EventId"           ''String      'id  'id
+    , PropSpec "event.description"  "EventDescription"  ''String      'id  'id
+    , PropSpec "event.mouse.x"      "EventMouseX"       ''Int         'show  'read
+    , PropSpec "event.mouse.y"      "EventMouseY"       ''Int         'show  'read
+    , PropSpec "event.mouse.hpos"   "EventMouseHpos"    ''Double      'show  'read
+    , PropSpec "event.mouse.vpos"   "EventMouseVpos"    ''Double      'show  'read
+    , PropSpec "event.mouse.button" "EventMouseButton"  ''MouseButton 'toRawMouseButton  'fromRawMouseButton
+    , PropSpec "window.name"        "WindowName"        ''String      'id  'id
+    , PropSpec "window.id"          "WindowId"          ''String      'id  'id
+    , PropSpec "window.icon_name"   "WindowIconName"    ''String      'id  'id
+    , PropSpec "window.x"           "WindowX"           ''Int         'show  'read
+    , PropSpec "window.y"           "WindowY"           ''Int         'show  'read
+    , PropSpec "window.width"       "WindowWidth"       ''Int         'show  'read
+    , PropSpec "window.height"      "WindowHeight"      ''Int         'show  'read
+    , PropSpec "window.hpos"        "WindowHpos"        ''Double      'show  'read
+    , PropSpec "window.vpos"        "WindowVpos"        ''Double      'show  'read
+    , PropSpec "window.desktop"     "WindowDesktop"     ''StringList  'toRawWindowDesktop  'fromRawWindowDesktop
+    , PropSpec "window.x11.display" "WindowX11Display"  ''String      'id  'id
+    , PropSpec "window.x11.screen"  "WindowX11Screen"   ''Int         'show  'read
+    , PropSpec "window.x11.monitor" "WindowX11Monitor"  ''Int         'show  'read
+    , PropSpec "window.x11.xid"     "WindowX11Xid"      ''Int         'show  'read
     ]
 
 -- |Generate 'PropTag'
