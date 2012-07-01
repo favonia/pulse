@@ -94,6 +94,7 @@ defConfig = Config
 -- | The type of the context.
 data Context = Context
     { ctxRaw :: RawContextPtr
+    , ctxDead :: TVar Bool
     , ctxState :: StablePtr (TVar ContextState)
     , ctxLoop :: MainLoop
     }
@@ -145,8 +146,10 @@ newConn conf = mask_ $ bracketOnError
                                 ContextReady -> return () -- Yay!
                                 ContextFailed -> throwSTM ConnectionFail
                                 ContextTerminated -> throwSTM ConnectionFail
+                        dead <- newTVarIO False
                         return Context
                             { ctxRaw = raw
+                            , ctxDead = dead
                             , ctxLoop = loop
                             , ctxState = monPtr
                             }
@@ -163,11 +166,20 @@ foreign import ccall "&_pulse_private_cxtDrainCallback"
 
 -- | End the connection and free the resource.
 freeConn :: Context -> IO ()
-freeConn ctx = do
+freeConn ctx = mask_ $ do
+    -- ctxDead
+    atomically $ do
+        void . check . not =<< readTVar (ctxDead ctx)
+        writeTVar (ctxDead ctx) True
+    -- ctxRaw
     maybe (contextDisconnect $ ctxRaw ctx) operationUnref
         =<< blockLoop (ctxLoop ctx) (contextDrain (ctxRaw ctx) wrappedCxtDrainCallback Nothing)
+    -- ctxState
+    freeStablePtr (ctxState ctx)
+    -- ctxLoop and ctxRaw
     quitLoop (ctxLoop ctx)
     freeLoop (ctxLoop ctx)
+    contextUnref (ctxRaw ctx)
 
 -------------------------------------------------------------
 -- Exceptions
