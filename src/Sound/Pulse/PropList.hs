@@ -65,7 +65,9 @@ import Sound.Pulse.PropList.Internal
 --   in a more generalized syntax.
 $(genPropTag)
 $(deriveGEqPropTag)
+$(deriveEqTagPropTag)
 $(deriveGComparePropTag)
+$(deriveOrdTagPropTag)
 $(deriveGShowPropTag)
 $(deriveShowTagPropTag)
 

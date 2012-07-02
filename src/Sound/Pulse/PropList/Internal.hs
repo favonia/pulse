@@ -169,6 +169,23 @@ deriveGEqPropTag =
             [ Clause [WildP, WildP] (NormalB $ ConE 'Nothing) []
             ]]]
 
+-- | Generate the instance for 'EqTag'.
+deriveEqTagPropTag :: Q [Dec]
+deriveEqTagPropTag = do
+    let propTag = ConT $ mkName "PropTag"
+    return [InstanceD []
+        (AppT (ConT ''EqTag) propTag)
+        [FunD 'eqTagged $
+            [ Clause [pat, pat] (NormalB $ VarE '(==)) []
+            | ps <- propSpecs
+            , let pat = ConP (mkName $ propHaskellName ps) []
+            ]
+            ++
+            [Clause
+                [WildP, WildP]
+                (NormalB $ AppE (VarE 'error) $ LitE $ StringL "incomparable")
+                []]]]
+
 -- | Generate the instance for 'GCompare'.
 deriveGComparePropTag :: Q [Dec]
 deriveGComparePropTag =
@@ -183,6 +200,23 @@ deriveGComparePropTag =
             | ps <- propSpecs
             , let pat = ConP (mkName $ propHaskellName ps) []
             ]]]
+
+-- | Generate the instance for 'OrdTag'.
+deriveOrdTagPropTag :: Q [Dec]
+deriveOrdTagPropTag = do
+    let propTag = ConT $ mkName "PropTag"
+    return [InstanceD []
+        (AppT (ConT ''OrdTag) propTag)
+        [FunD 'compareTagged $
+            [ Clause [pat, pat] (NormalB $ VarE 'compare) []
+            | ps <- propSpecs
+            , let pat = ConP (mkName $ propHaskellName ps) []
+            ]
+            ++
+            [Clause
+                [WildP, WildP]
+                (NormalB $ AppE (VarE 'error) $ LitE $ StringL "incomparable")
+                []]]]
 
 -- | Generate the instance for 'GShow'.
 deriveGShowPropTag :: Q [Dec]
