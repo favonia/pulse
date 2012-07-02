@@ -54,8 +54,6 @@ Library
         transformers >= 0.2 && < 0.4,
         MonadCatchIO-transformers >= 0.2 && < 0.4,
         stm == 2.3.*,
-        syb == 0.3.*,
-        MissingH >= 1.0,
         -- TH 2.7.* is not buildable under GHC 7.2
         template-haskell >= 2.4 && < 2.8,
         dependent-map == 0.1.*,

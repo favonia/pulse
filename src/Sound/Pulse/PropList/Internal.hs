@@ -12,11 +12,12 @@ This module provides Template Haskell generators for 'PropTag'.
 -}
 module Sound.Pulse.PropList.Internal where
 
-import qualified Data.String.Utils as U
+import Data.List (intercalate)
 import Language.Haskell.TH
 import Data.Dependent.Sum
 import Data.GADT.Compare
 
+-- | Specification of a property.
 data PropSpec = PropSpec
     { propRawName :: String
     , propHaskellName :: String
@@ -25,34 +26,38 @@ data PropSpec = PropSpec
     , propFromRawValue :: Name
     }
 
--- |Access mode. Used in 'DeviceAccessMode'.
+-- | Access mode. Used in 'DeviceAccessMode'.
 data AccessMode = Mmap | MmapRewrite | Serial
 
--- |Bus type. Used in 'DeviceBus'.
+-- | Bus type. Used in 'DeviceBus'.
 data Bus = Isa | Pci | Usb | Firewire | Bluetooth
 
--- |Class of a device. Used in 'DeviceClass'.
+-- | Class of a device. Used in 'DeviceClass'.
 data Class = Sound | Modem | Monitor | Filter
 
--- |Form factor. Used in 'DeviceFormFactor'.
+-- | Form factor. Used in 'DeviceFormFactor'.
 data FormFactor = Internal | Speaker | Handset | Tv | Webcam | Microphone | Headset | Headphone | HandsFree | Car | Hifi | Computer | Portable
 
--- |Button clicked in an event. Used in 'EventMouseButton'.
+-- | Button clicked in an event. Used in 'EventMouseButton'.
 data MouseButton = MouseLeft | MouseMiddle | MouseRight
 
+-- | Out marshaller for 'MouseButton'.
 toRawMouseButton :: MouseButton -> String
 toRawMouseButton btn = case btn of MouseLeft   -> "0"
                                    MouseMiddle -> "1"
                                    MouseRight  -> "2"
 
+-- | In marshaller for 'MouseButton'.
 fromRawMouseButton :: String -> MouseButton
 fromRawMouseButton btnNoStr = case btnNoStr of "0" -> MouseLeft
                                                "1" -> MouseMiddle 
-                                               "2" -> MouseRight 
+                                               "2" -> MouseRight
+                                               _ -> error "unknown mouse button"
 
--- |Role of this media. Used in 'MediaRole' and 'DeviceIntendedRoles'.
+-- | Role of this media. Used in 'MediaRole' and 'DeviceIntendedRoles'.
 data Role = Video | Music | Game | Event | Phone | Animation | Production | A11y | Test
 
+-- | Out marshaller for 'Role'.
 toRawRole :: Role -> String
 toRawRole r = case r of Video -> "video"
                         Music -> "music"
@@ -63,7 +68,8 @@ toRawRole r = case r of Video -> "video"
                         Production -> "production"
                         A11y -> "a11y"
                         Test -> "test"
-                        
+
+-- | In marshaller for 'Role'.
 fromRawRole :: String -> Role
 fromRawRole roleStr = case roleStr of "video" -> Video
                                       "music" -> Music
@@ -74,18 +80,26 @@ fromRawRole roleStr = case roleStr of "video" -> Video
                                       "production" -> Production
                                       "a11y" -> A11y
                                       "test" -> Test
+                                      _ -> error "unknown role"
 
--- |List of strings. This type alias is created purely for our usage of Template Haskell.
-type StringList = [String]
+-- | List of indexes. This type alias is created purely for our usage of Template Haskell.
+--   Used in 'WindowDesktop'.
+type Desktop = [Int]
 
-toRawWindowDesktop :: StringList -> String
-toRawWindowDesktop l = U.join "," l
+-- | Out marshaller for 'Desktop'.
+toRawDesktop :: Desktop -> String
+toRawDesktop = intercalate "," . map show
 
-fromRawWindowDesktop :: String -> StringList
-fromRawWindowDesktop s = U.split "," s
+-- | In marshaller for 'Desktop'.
+fromRawDesktop :: String -> Desktop
+fromRawDesktop [] = []
+fromRawDesktop s =
+    let (first, rest) = break (== ',') s
+    in read first : case rest of
+        [] -> []
+        (_:rest') -> fromRawDesktop rest'
 
-
--- |Metadata for Template Haskell
+-- | Metadata for Template Haskell.
 propSpecs :: [PropSpec]
 propSpecs =
     [ PropSpec "media.name"         "MediaName"         ''String      'id         'id
@@ -116,14 +130,14 @@ propSpecs =
     , PropSpec "window.height"      "WindowHeight"      ''Int         'show  'read
     , PropSpec "window.hpos"        "WindowHpos"        ''Double      'show  'read
     , PropSpec "window.vpos"        "WindowVpos"        ''Double      'show  'read
-    , PropSpec "window.desktop"     "WindowDesktop"     ''StringList  'toRawWindowDesktop  'fromRawWindowDesktop
+    , PropSpec "window.desktop"     "WindowDesktop"     ''Desktop     'toRawDesktop  'fromRawDesktop
     , PropSpec "window.x11.display" "WindowX11Display"  ''String      'id  'id
     , PropSpec "window.x11.screen"  "WindowX11Screen"   ''Int         'show  'read
     , PropSpec "window.x11.monitor" "WindowX11Monitor"  ''Int         'show  'read
     , PropSpec "window.x11.xid"     "WindowX11Xid"      ''Int         'show  'read
     ]
 
--- |Generate 'PropTag'
+-- | Generate 'PropTag'.
 genPropTag :: Q [Dec]
 genPropTag =
     let param = mkName "a" in
@@ -135,7 +149,7 @@ genPropTag =
         | ps <- propSpecs
         ] []]
 
--- |Generate the instance for 'GEq'
+-- | Generate the instance for 'GEq'.
 deriveGEqPropTag :: Q [Dec]
 deriveGEqPropTag =
     return [InstanceD []
@@ -149,7 +163,7 @@ deriveGEqPropTag =
             [ Clause [WildP, WildP] (NormalB $ ConE 'Nothing) []
             ]]]
 
--- |Generate the instance for 'GCompare'
+-- | Generate the instance for 'GCompare'.
 deriveGComparePropTag :: Q [Dec]
 deriveGComparePropTag =
     return [InstanceD []
@@ -164,7 +178,7 @@ deriveGComparePropTag =
             , let pat = ConP (mkName $ propHaskellName ps) []
             ]]]
 
--- |Generate the in manshel function
+-- | Generate the in marshaller for 'PropList'.
 genToKeyValue :: Q [Dec]
 genToKeyValue = do
     let propTag = ConT $ mkName "PropTag"
@@ -184,7 +198,7 @@ genToKeyValue = do
             , let pat = ConP (mkName $ propHaskellName ps) []
             ]]
 
--- |Generate the out manshel function
+-- | Generate the out marshaller for 'PropList'.
 genFromKeyValue :: Q [Dec]
 genFromKeyValue = do
     let propTag = ConT $ mkName "PropTag"

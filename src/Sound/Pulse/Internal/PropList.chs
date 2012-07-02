@@ -18,7 +18,10 @@ import Sound.Pulse.Internal.C2HS
 
 #include <pulse/proplist.h>
 
+-- | Raw @PropList@.
 data RawPropList
+
+-- | Pointers to raw @PropList@.
 {#pointer *proplist as RawPropListPtr -> RawPropList #}
 
 {#fun proplist_new as ^ {} -> `RawPropListPtr' id #}
@@ -32,5 +35,5 @@ data RawPropList
 type PropListIterateState = Ptr ()
 {#fun proplist_iterate as ^ {id `RawPropListPtr', id `Ptr PropListIterateState'} -> `Maybe String' peekNullableUTF8CString* #}
 
-{#fun proplist_from_string as ^ {withUTF8CString * `String'} -> `RawPropListPtr' id  #}
+{#fun proplist_from_string as ^ {withUTF8CString * `String'} -> `Maybe RawPropListPtr' toMaybePtr #}
 
