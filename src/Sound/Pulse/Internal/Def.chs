@@ -52,7 +52,7 @@ data BufferAttr = BufferAttr { maxlength :: Word32,
 
 instance Storable BufferAttr where
     sizeOf _ = {#sizeof buffer_attr #}
-    alignment _ = 4
+    alignment _ = {#alignof buffer_attr #}
     peek p = BufferAttr
         <$> liftM cIntConv ({#get buffer_attr->maxlength #} p)
         <*> liftM cIntConv ({#get buffer_attr->tlength #} p)
