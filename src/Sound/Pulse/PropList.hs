@@ -2,7 +2,9 @@
 #if __GLASGOW_HASKELL__ >= 702
 {-# LANGUAGE Trustworthy #-}
 #endif
-{-# LANGUAGE GADTs, TypeFamilies, TemplateHaskell #-}
+{-# LANGUAGE GADTs, TypeFamilies #-}
+{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE TemplateHaskell #-}
 {- |
 Module      :  Sound.Pulse.PropList
 Copyright   :  (c) Favonia

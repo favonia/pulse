@@ -13,6 +13,7 @@ This module provides Template Haskell generators for 'PropTag'.
 module Sound.Pulse.PropList.Internal where
 
 import Data.List (intercalate)
+import Data.Typeable
 import Language.Haskell.TH
 import Data.Dependent.Sum
 import Data.GADT.Compare
@@ -152,7 +153,7 @@ genPropTag =
             [EqualP (VarT param) (ConT $ propValueType ps)]
             (NormalC (mkName $ propHaskellName ps) [])
         | ps <- propSpecs
-        ] []]
+        ] [''Typeable]]
 
 -- | Generate the instance for 'GEq'.
 deriveGEqPropTag :: Q [Dec]
