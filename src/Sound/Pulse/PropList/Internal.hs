@@ -28,19 +28,22 @@ data PropSpec = PropSpec
     }
 
 -- | Access mode. Used in 'DeviceAccessMode'.
-data AccessMode = Mmap | MmapRewrite | Serial
+data AccessMode = Mmap | MmapRewrite | Serial deriving (Eq, Show, Ord)
 
 -- | Bus type. Used in 'DeviceBus'.
-data Bus = Isa | Pci | Usb | Firewire | Bluetooth
+data Bus = Isa | Pci | Usb | Firewire | Bluetooth deriving (Eq, Show, Ord)
 
 -- | Class of a device. Used in 'DeviceClass'.
-data Class = Sound | Modem | Monitor | Filter
+data Class = Sound | Modem | Monitor | Filter deriving (Eq, Show, Ord)
 
 -- | Form factor. Used in 'DeviceFormFactor'.
-data FormFactor = Internal | Speaker | Handset | Tv | Webcam | Microphone | Headset | Headphone | HandsFree | Car | Hifi | Computer | Portable
+data FormFactor = Internal | Speaker | Handset | Tv | Webcam
+                | Microphone | Headset | Headphone | HandsFree
+                | Car | Hifi | Computer | Portable
+    deriving (Eq, Show, Ord)
 
 -- | Button clicked in an event. Used in 'EventMouseButton'.
-data MouseButton = MouseLeft | MouseMiddle | MouseRight
+data MouseButton = MouseLeft | MouseMiddle | MouseRight deriving (Eq, Show, Ord)
 
 -- | Out marshaller for 'MouseButton'.
 toRawMouseButton :: MouseButton -> String
@@ -57,6 +60,7 @@ fromRawMouseButton btnNoStr = case btnNoStr of "0" -> MouseLeft
 
 -- | Role of this media. Used in 'MediaRole' and 'DeviceIntendedRoles'.
 data Role = Video | Music | Game | Event | Phone | Animation | Production | A11y | Test
+    deriving (Eq, Show, Ord)
 
 -- | Out marshaller for 'Role'.
 toRawRole :: Role -> String
@@ -182,32 +186,24 @@ deriveGComparePropTag =
 -- | Generate the instance for 'GShow'.
 deriveGShow :: Q [Dec]
 deriveGShow = do
-    let prec = mkName "prec"
     let propTag = ConT $ mkName "PropTag"
     return [InstanceD []
         (AppT (ConT ''GShow) propTag)
         [FunD 'gshowsPrec
-            [ Clause [VarP prec, pat]
-                (NormalB $ AppE (AppE (VarE 'showsPrec) $ VarE prec) rawName)
-                []
+            [ Clause [WildP, pat] (NormalB $ AppE (VarE '(++)) haskellName) []
             | ps <- propSpecs
             , let pat = ConP (mkName $ propHaskellName ps) []
-            , let rawName = LitE $ StringL $ propRawName ps
+            , let haskellName = LitE $ StringL $ propHaskellName ps
             ]]]
 
 -- | Generate the instance for 'ShowTag'.
 deriveShowTag :: Q [Dec]
 deriveShowTag = do
     let propTag = ConT $ mkName "PropTag"
-    let val = mkName "val"
-    let prec = mkName "prec"
     return [InstanceD []
         (AppT (ConT ''ShowTag) propTag)
         [FunD 'showTaggedPrec
-            [ Clause [pat, VarP prec, VarP val]
-                (NormalB $ AppE (AppE (VarE 'showsPrec) $ VarE prec)
-                    $ AppE (VarE $ propToRawValue ps) (VarE val))
-                []
+            [ Clause [pat] (NormalB $ VarE 'showsPrec) []
             | ps <- propSpecs
             , let pat = ConP (mkName $ propHaskellName ps) []
             ]]]
