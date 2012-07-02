@@ -1,4 +1,5 @@
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE CPP #-}
 {- |
 Module      :  Sound.Pulse.PropList.Internal
 Copyright   :  (c) Favonia
@@ -14,10 +15,11 @@ module Sound.Pulse.PropList.Internal where
 
 import Data.List (intercalate)
 import Data.Typeable
-import Language.Haskell.TH
 import Data.Dependent.Sum
 import Data.GADT.Compare
 import Data.GADT.Show
+import Language.Haskell.TH
+import System.Posix.Types
 
 -- | Specification of a property.
 data PropSpec = PropSpec
@@ -141,6 +143,19 @@ propSpecs =
     , PropSpec "window.x11.screen"  "WindowX11Screen"   ''Int         'show  'read
     , PropSpec "window.x11.monitor" "WindowX11Monitor"  ''Int         'show  'read
     , PropSpec "window.x11.xid"     "WindowX11Xid"      ''Int         'show  'read
+    , PropSpec "application.name"           "ApplicationName"          ''String        'id  'id
+    , PropSpec "application.id"             "ApplicationId"            ''String        'id  'id
+    , PropSpec "application.version"        "ApplicationVersion"       ''String        'id  'id
+    , PropSpec "application.icon_name"      "ApplicationIconName"      ''String        'id  'id
+    , PropSpec "application.language"       "ApplicationLanguage"      ''String        'id  'id
+#if !defined(mingw32_HOST_OS)
+    , PropSpec "application.process.id"     "ApplicationProcessId"     ''ProcessID     'show  'read
+#endif
+    , PropSpec "application.process.binary" "ApplicationProcessBinary" ''String        'id  'id
+    , PropSpec "application.process.user"   "ApplicationProcessUser"   ''String        'id  'id
+    , PropSpec "application.process.host"   "ApplicationProcessHost"   ''String        'id  'id
+    , PropSpec "application.process.machine_id" "ApplicationProcessMachineId" ''String 'id  'id
+    , PropSpec "application.process.session_id" "ApplicationProcessSessionId" ''Int    'show  'read
     ]
 
 -- | Generate 'PropTag'.
