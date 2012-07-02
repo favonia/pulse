@@ -20,6 +20,8 @@ module Sound.Pulse.PropList
     PropList,
     module Data.Dependent.Map,
     PropTag(..),
+    toKeyValue,
+    fromKeyValue,
     AccessMode(..),
     Bus(..),
     Class(..),
@@ -49,6 +51,7 @@ import Foreign.Safe
 #else
 import Foreign
 #endif
+import Data.Dependent.Sum
 import Data.Dependent.Map
 
 import Sound.Pulse.Internal.PropList
@@ -61,9 +64,13 @@ import Sound.Pulse.PropList.Internal
 $(genPropTag)
 $(deriveGEqPropTag)
 $(deriveGComparePropTag)
+$(deriveGShow)
+$(deriveShowTag)
 
--- | Marshaling functions
+-- | Out marshaller for 'DSum' 'PropTag'.
 $(genToKeyValue)
+
+-- | In marshaller for 'DSum' 'PropTag'.
 $(genFromKeyValue)
 
 -- | A map serving the high-level interface of @pa_proplist@.

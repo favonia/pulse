@@ -16,6 +16,7 @@ import Data.List (intercalate)
 import Language.Haskell.TH
 import Data.Dependent.Sum
 import Data.GADT.Compare
+import Data.GADT.Show
 
 -- | Specification of a property.
 data PropSpec = PropSpec
@@ -174,6 +175,39 @@ deriveGComparePropTag =
                 , Clause [WildP, pat] (NormalB (ConE 'GLT)) []
                 , Clause [pat, WildP] (NormalB (ConE 'GGT)) []
                 ]
+            | ps <- propSpecs
+            , let pat = ConP (mkName $ propHaskellName ps) []
+            ]]]
+
+-- | Generate the instance for 'GShow'.
+deriveGShow :: Q [Dec]
+deriveGShow = do
+    let prec = mkName "prec"
+    let propTag = ConT $ mkName "PropTag"
+    return [InstanceD []
+        (AppT (ConT ''GShow) propTag)
+        [FunD 'gshowsPrec
+            [ Clause [VarP prec, pat]
+                (NormalB $ AppE (AppE (VarE 'showsPrec) $ VarE prec) rawName)
+                []
+            | ps <- propSpecs
+            , let pat = ConP (mkName $ propHaskellName ps) []
+            , let rawName = LitE $ StringL $ propRawName ps
+            ]]]
+
+-- | Generate the instance for 'ShowTag'.
+deriveShowTag :: Q [Dec]
+deriveShowTag = do
+    let propTag = ConT $ mkName "PropTag"
+    let val = mkName "val"
+    let prec = mkName "prec"
+    return [InstanceD []
+        (AppT (ConT ''ShowTag) propTag)
+        [FunD 'showTaggedPrec
+            [ Clause [pat, VarP prec, VarP val]
+                (NormalB $ AppE (AppE (VarE 'showsPrec) $ VarE prec)
+                    $ AppE (VarE $ propToRawValue ps) (VarE val))
+                []
             | ps <- propSpecs
             , let pat = ConP (mkName $ propHaskellName ps) []
             ]]]
