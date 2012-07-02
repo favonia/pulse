@@ -159,9 +159,9 @@ genPropTag =
 deriveGEqPropTag :: Q [Dec]
 deriveGEqPropTag =
     return [InstanceD []
-        (AppT (ConT ''GEq) (ConT $ mkName "PropTag"))
+        (ConT ''GEq `AppT` ConT (mkName "PropTag"))
         [FunD 'geq $
-            [ Clause [pat, pat] (NormalB (AppE (ConE 'Just) (ConE 'Refl))) []
+            [ Clause [pat, pat] (NormalB (ConE 'Just `AppE` ConE 'Refl)) []
             | ps <- propSpecs
             , let pat = ConP (mkName $ propHaskellName ps) []
             ]
@@ -174,7 +174,7 @@ deriveEqTagPropTag :: Q [Dec]
 deriveEqTagPropTag = do
     let propTag = ConT $ mkName "PropTag"
     return [InstanceD []
-        (AppT (ConT ''EqTag) propTag)
+        (ConT ''EqTag `AppT` propTag)
         [FunD 'eqTagged $
             [ Clause [pat, pat] (NormalB $ VarE '(==)) []
             | ps <- propSpecs
@@ -183,14 +183,14 @@ deriveEqTagPropTag = do
             ++
             [Clause
                 [WildP, WildP]
-                (NormalB $ AppE (VarE 'error) $ LitE $ StringL "incomparable")
+                (NormalB $ VarE 'error `AppE` LitE (StringL "incomparable"))
                 []]]]
 
 -- | Generate the instance for 'GCompare'.
 deriveGComparePropTag :: Q [Dec]
 deriveGComparePropTag =
     return [InstanceD []
-        (AppT (ConT ''GCompare) (ConT $ mkName "PropTag"))
+        (ConT ''GCompare `AppT` ConT (mkName "PropTag"))
         [FunD 'gcompare $ concat
             [
                 [ Clause [pat, pat] (NormalB (ConE 'GEQ)) []
@@ -206,7 +206,7 @@ deriveOrdTagPropTag :: Q [Dec]
 deriveOrdTagPropTag = do
     let propTag = ConT $ mkName "PropTag"
     return [InstanceD []
-        (AppT (ConT ''OrdTag) propTag)
+        (ConT ''OrdTag `AppT` propTag)
         [FunD 'compareTagged $
             [ Clause [pat, pat] (NormalB $ VarE 'compare) []
             | ps <- propSpecs
@@ -215,7 +215,7 @@ deriveOrdTagPropTag = do
             ++
             [Clause
                 [WildP, WildP]
-                (NormalB $ AppE (VarE 'error) $ LitE $ StringL "incomparable")
+                (NormalB $ VarE 'error `AppE` LitE (StringL "incomparable"))
                 []]]]
 
 -- | Generate the instance for 'GShow'.
@@ -223,9 +223,9 @@ deriveGShowPropTag :: Q [Dec]
 deriveGShowPropTag = do
     let propTag = ConT $ mkName "PropTag"
     return [InstanceD []
-        (AppT (ConT ''GShow) propTag)
+        (ConT ''GShow `AppT` propTag)
         [FunD 'gshowsPrec
-            [ Clause [WildP, pat] (NormalB $ AppE (VarE '(++)) haskellName) []
+            [ Clause [WildP, pat] (NormalB $ VarE '(++) `AppE` haskellName) []
             | ps <- propSpecs
             , let pat = ConP (mkName $ propHaskellName ps) []
             , let haskellName = LitE $ StringL $ propHaskellName ps
@@ -236,7 +236,7 @@ deriveShowTagPropTag :: Q [Dec]
 deriveShowTagPropTag = do
     let propTag = ConT $ mkName "PropTag"
     return [InstanceD []
-        (AppT (ConT ''ShowTag) propTag)
+        (ConT ''ShowTag `AppT` propTag)
         [FunD 'showTaggedPrec
             [ Clause [pat] (NormalB $ VarE 'showsPrec) []
             | ps <- propSpecs
@@ -247,17 +247,18 @@ deriveShowTagPropTag = do
 genToKeyValue :: Q [Dec]
 genToKeyValue = do
     let propTag = ConT $ mkName "PropTag"
+    let dsumPropTag = ConT ''DSum `AppT` propTag
+    let string2 = TupleT 2 `AppT` ConT ''String `AppT` ConT ''String
     let func = mkName "toKeyValue"
     let var = mkName "x"
-    sig <- [t|DSum $(return propTag) -> (String, String)|]
     return
-        [ SigD func sig
+        [ SigD func $ ArrowT `AppT` dsumPropTag `AppT` string2
         , FunD func
             [ Clause
                 [InfixP pat '(:=>) (VarP var)]
                 (NormalB $ TupE
                     [ LitE $ StringL $ propRawName ps
-                    , AppE (VarE $ propToRawValue ps) (VarE var)
+                    , VarE (propToRawValue ps) `AppE` VarE var
                     ]) []
             | ps <- propSpecs
             , let pat = ConP (mkName $ propHaskellName ps) []
@@ -267,11 +268,12 @@ genToKeyValue = do
 genFromKeyValue :: Q [Dec]
 genFromKeyValue = do
     let propTag = ConT $ mkName "PropTag"
+    let dsumPropTag = ConT ''DSum `AppT` propTag
+    let stringArrow = (ArrowT `AppT` ConT ''String `AppT`)
     let func = mkName "fromKeyValue"
     let var = mkName "x"
-    sig <- [t|String -> String -> DSum $(return propTag)|]
     return
-        [ SigD func sig
+        [ SigD func $ stringArrow $ stringArrow dsumPropTag
         , FunD func $
             [ Clause
                 [ LitP $ StringL $ propRawName ps
@@ -280,7 +282,7 @@ genFromKeyValue = do
                 (NormalB $ InfixE
                     (Just $ ConE $ mkName $ propHaskellName ps)
                     (ConE '(:=>))
-                    (Just $ AppE (VarE (propFromRawValue ps)) (VarE var)))
+                    (Just $ VarE (propFromRawValue ps) `AppE` VarE var))
                 []
             | ps <- propSpecs
             ]
@@ -288,6 +290,5 @@ genFromKeyValue = do
             -- XXX: poor error handling
             [Clause
                 [WildP, WildP]
-                (NormalB $ AppE (VarE 'error)
-                    (LitE $ StringL "unknown property name"))
+                (NormalB $ VarE 'error `AppE` LitE (StringL "unknown property name"))
                 []]]
