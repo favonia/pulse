@@ -44,6 +44,7 @@ Library
         Sound.Pulse.Internal.Sample
         Sound.Pulse.Internal.Version
         Sound.Pulse.Internal.Volume
+        Sound.Pulse.Internal.Introspect
         Sound.Pulse.Internal.C2HS
         Sound.Pulse.PropList.Internal
         Sound.Pulse.Monad.Internal
