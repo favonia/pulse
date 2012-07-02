@@ -24,6 +24,7 @@ import Sound.Pulse.Internal.C2HS
 
 {#enum stream_state as ^ {underscoreToCase} deriving (Show, Eq) #}
 
+-- | The state of the operation.
 {#enum operation_state as ^ {underscoreToCase} deriving (Show, Eq) #}
 
 {#enum context_flags as ^ {underscoreToCase} deriving (Show, Eq) #}

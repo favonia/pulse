@@ -62,6 +62,7 @@ data MainLoop = MainLoop
     , mlOps :: TVar [Operation] -- ^ Pending operations.
     }
 
+-- | Get the API of the loop. No need to free it manually.
 getApi :: MainLoop -> IO MainLoopApiPtr
 getApi = mainloopGetApi . mlRaw
 
@@ -84,7 +85,8 @@ newLoop = do
         , mlOps = ops
         }
 
--- | Run the loop. Might throw 'LoopRunning' or 'LoopDead'.
+-- | Run the loop. Will block if there is another loop running
+--   or the loop is declared to be dead.
 runLoop :: MainLoop -> IO ()
 runLoop ml = mask_ $ do
     atomically $ do
@@ -125,10 +127,13 @@ runLoop ml = mask_ $ do
                     atomically $ putTMVar auth ()
                     atomically $ readTMVar reply
 
+-- | Quit the loop. This is non-blocking, which means
+--   this call might return before the loop really ends.
 quitLoop :: MainLoop -> IO ()
 quitLoop ml = mainloopQuit (mlRaw ml) 0
 
--- | Stop the loop and free the resource.
+-- | Stop the loop and free the resource. Will wait
+--   for the loop to end.
 freeLoop :: MainLoop -> IO ()
 freeLoop ml = mask_ $ do
     atomically $ do

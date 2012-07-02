@@ -93,10 +93,10 @@ defConfig = Config
 
 -- | The type of the context.
 data Context = Context
-    { ctxRaw :: RawContextPtr
-    , ctxDead :: TVar Bool
-    , ctxState :: StablePtr (TVar ContextState)
-    , ctxLoop :: MainLoop
+    { ctxRaw :: RawContextPtr -- ^ Raw context.
+    , ctxDead :: TVar Bool -- ^ Is this dead?
+    , ctxState :: StablePtr (TVar ContextState) -- ^ Monitor for the state.
+    , ctxLoop :: MainLoop -- ^ Main loop.
     }
 
 -- | Callback for state changes
