@@ -66,8 +66,8 @@ import Sound.Pulse.PropList.Internal
 $(genPropTag)
 $(deriveGEqPropTag)
 $(deriveGComparePropTag)
-$(deriveGShow)
-$(deriveShowTag)
+$(deriveGShowPropTag)
+$(deriveShowTagPropTag)
 
 -- | Out marshaller for 'DSum' 'PropTag'.
 $(genToKeyValue)

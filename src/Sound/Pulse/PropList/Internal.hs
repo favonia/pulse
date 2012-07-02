@@ -185,8 +185,8 @@ deriveGComparePropTag =
             ]]]
 
 -- | Generate the instance for 'GShow'.
-deriveGShow :: Q [Dec]
-deriveGShow = do
+deriveGShowPropTag :: Q [Dec]
+deriveGShowPropTag = do
     let propTag = ConT $ mkName "PropTag"
     return [InstanceD []
         (AppT (ConT ''GShow) propTag)
@@ -198,8 +198,8 @@ deriveGShow = do
             ]]]
 
 -- | Generate the instance for 'ShowTag'.
-deriveShowTag :: Q [Dec]
-deriveShowTag = do
+deriveShowTagPropTag :: Q [Dec]
+deriveShowTagPropTag = do
     let propTag = ConT $ mkName "PropTag"
     return [InstanceD []
         (AppT (ConT ''ShowTag) propTag)
