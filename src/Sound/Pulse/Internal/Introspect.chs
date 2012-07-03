@@ -285,6 +285,11 @@ type RawClientInfoCallback a = RawContextPtr -> RawClientInfoPtr -> CInt -> RawU
 data RawCardProfileInfo
 {#pointer *card_profile_info as RawCardProfileInfoPtr -> RawCardProfileInfo #}
 
+#if PA_CHECK_VERSION(2,0,0)
+data RawCardPortInfo
+{#pointer *card_port_info as RawCardPortInfoPtr -> RawCardPortInfo #}
+#endif
+
 data RawCardInfo
 {#pointer *card_info as RawCardInfoPtr -> RawCardInfo #}
 
