@@ -2,6 +2,18 @@
 #if __GLASGOW_HASKELL__ >= 702
 {-# LANGUAGE Safe #-}
 #endif
+{- |
+Module      :  Sound.Pulse.Monad
+Copyright   :  (c) MnO2
+License     :  BSD3
+
+Maintainer  :  mno2.csie@gmail.com
+Stability   :  experimental
+Portability :  non-portable (GHC only)
+
+This module provides the monadic interface.
+-}
+
 module Sound.Pulse.Internal.Version where
 
 #include <pulse/version.h>
