@@ -1,5 +1,5 @@
 language: haskell
 install:
     - sudo apt-get install libpulse-dev pulseaudio
-    - ./travis-script/launch-headless-pulseaudio.sh
+    - dbus-launch pulseaudio --start
     - cabal install
