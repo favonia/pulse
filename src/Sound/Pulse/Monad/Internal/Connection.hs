@@ -76,10 +76,10 @@ fromMode DoNotWaitForDaemon = [ContextNoautospawn]
 
 -- | Connection setting.
 data Config = Config
-    { confServerName :: ServerName
-    , confAppName :: String
-    , confProp :: PropList
-    , confMode :: ConnMode
+    { confServerName :: !ServerName
+    , confAppName :: !String
+    , confProp :: !PropList
+    , confMode :: !ConnMode
     }
 
 -- | Default connection setting.
@@ -93,10 +93,10 @@ defConfig = Config
 
 -- | The type of the context.
 data Context = Context
-    { ctxRaw :: RawContextPtr -- ^ Raw context.
-    , ctxDead :: TVar Bool -- ^ Is this dead?
-    , ctxState :: StablePtr (TVar ContextState) -- ^ Monitor for the state.
-    , ctxLoop :: MainLoop -- ^ Main loop.
+    { ctxRaw :: {-# UNPACK #-} !RawContextPtr -- ^ Raw context.
+    , ctxDead :: !(TVar Bool) -- ^ Is this dead?
+    , ctxState :: !(StablePtr (TVar ContextState)) -- ^ Monitor for the state.
+    , ctxLoop :: !MainLoop -- ^ Main loop.
     }
 
 -- | Callback for state changes

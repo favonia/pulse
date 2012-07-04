@@ -45,8 +45,8 @@ import Sound.Pulse.Internal.MainLoop
 
 -- | Meta data for operation
 data Operation = Operation
-    { opRaw :: RawOperationPtr
-    , opMon :: TVar OperationState
+    { opRaw :: {-# UNPACK #-} !RawOperationPtr
+    , opMon :: !(TVar OperationState)
     }
 
 -- | The commands sent to the main loop.
@@ -54,12 +54,12 @@ data LoopCtl = Pause (TMVar (), TMVar ())
 
 -- | The state of the loop.
 data MainLoop = MainLoop
-    { mlRaw :: RawMainLoopPtr
-    , mlRunning :: TVar Bool -- ^ Token for the loop.
-    , mlDead :: TVar Bool -- ^ Token for the loop.
-    , mlCtl :: TChan LoopCtl -- ^ The channel the loop listens.
-    , mlLock :: TMVar (ThreadId, Int) -- ^ Recursive lock for clients.
-    , mlOps :: TVar [Operation] -- ^ Pending operations.
+    { mlRaw :: {-# UNPACK #-} !RawMainLoopPtr
+    , mlRunning :: !(TVar Bool) -- ^ Token for the loop.
+    , mlDead :: !(TVar Bool) -- ^ Token for the loop.
+    , mlCtl :: !(TChan LoopCtl) -- ^ The channel the loop listens.
+    , mlLock :: !(TMVar (ThreadId, Int)) -- ^ Recursive lock for clients.
+    , mlOps :: !(TVar [Operation]) -- ^ Pending operations.
     }
 
 -- | Get the API of the loop. No need to free it manually.
