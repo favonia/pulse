@@ -46,7 +46,7 @@ import Data.Maybe (fromJust)
 import Data.Foldable (mapM_)
 import System.IO (fixIO)
 import Control.Monad hiding (mapM_)
-import Control.Monad.CatchIO (MonadCatchIO(..), bracket)
+import Control.Monad.CatchIO (MonadCatchIO(..), bracket, bracketOnError)
 import Control.Monad.IO.Class (MonadIO(..))
 #if __GLASGOW_HASKELL__ >= 702
 import Foreign.Safe
@@ -110,10 +110,12 @@ withRawPropList pl = bracket (newRawPropList pl) freeRawPropList
 -- | Alloc a raw 'PropList'.
 --   Users are responsible of using 'freeRawPropList' to free the resource.
 newRawPropList :: MonadIO m => PropList -> m RawPropListPtr
-newRawPropList pl = liftIO $ do
-    rawPl <- proplistNew
-    forM_ (toList pl) $ uncurry (proplistSets rawPl) . toKeyValue
-    return rawPl
+newRawPropList pl = liftIO $ bracketOnError
+    proplistNew
+    proplistFree
+    $ \rawPl -> do
+        forM_ (toList pl) $ uncurry (proplistSets rawPl) . toKeyValue
+        return rawPl
 
 -- | Free the allocated raw 'PropList'.
 freeRawPropList :: MonadIO m => RawPropListPtr -> m ()
