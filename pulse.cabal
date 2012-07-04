@@ -35,7 +35,6 @@ Library
         Sound.Pulse.Internal.TimeVal
         Sound.Pulse.Internal.MainLoopApi
         Sound.Pulse.Internal.MainLoop
-        Sound.Pulse.Internal.ThreadedMainLoop
         Sound.Pulse.Internal.Operation
         Sound.Pulse.Internal.PropList
         Sound.Pulse.Internal.Context
