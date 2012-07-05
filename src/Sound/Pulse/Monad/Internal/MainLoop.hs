@@ -57,7 +57,7 @@ data MainLoop = MainLoop
     { mlRaw :: {-# UNPACK #-} !RawMainLoopPtr
     , mlRunning :: !(TVar Bool) -- ^ Token for the loop.
     , mlDead :: !(TVar Bool) -- ^ Token for the loop.
-    , mlCtl :: !(TChan LoopCtl) -- ^ The channel the loop listens.
+    , mlCtl :: !(TQueue LoopCtl) -- ^ The channel the loop listens.
     , mlLock :: !(TMVar (ThreadId, Int)) -- ^ Recursive lock for clients.
     , mlOps :: !(TVar [Operation]) -- ^ Pending operations.
     }
@@ -73,7 +73,7 @@ newLoop = do
     running <- newTVarIO False
     dead <- newTVarIO False
     lock <- newEmptyTMVarIO
-    ctl <- newTChanIO
+    ctl <- newTQueueIO
     ops <- newTVarIO []
     -- return the loop
     return MainLoop
@@ -120,7 +120,7 @@ runLoop ml = mask_ $ do
 
         handleCtl :: IO ()
         handleCtl = do
-            req <- atomically $ tryPeekTChan (mlCtl ml)
+            req <- atomically $ tryPeekTQueue (mlCtl ml)
             case req of
                 Nothing -> return ()
                 Just (Pause (auth, reply)) -> do
@@ -169,7 +169,7 @@ blockLoop ml code = bracket
             atomically $ void . check =<< readTVar (mlRunning ml)
             auth <- newEmptyTMVarIO
             reply <- newEmptyTMVarIO
-            atomically $ writeTChan (mlCtl ml) (Pause (auth, reply))
+            atomically $ writeTQueue (mlCtl ml) (Pause (auth, reply))
             mainloopWakeup (mlRaw ml)
             atomically $ takeTMVar auth
             return reply
