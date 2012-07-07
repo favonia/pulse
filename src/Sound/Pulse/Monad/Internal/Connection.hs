@@ -26,6 +26,7 @@ module Sound.Pulse.Monad.Internal.Connection
     -- Connection
     Context,
     ctxRaw,
+    ctxLoop,
     newConn,
     freeConn,
     ConnectionFail,

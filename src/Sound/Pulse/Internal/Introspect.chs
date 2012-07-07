@@ -25,6 +25,7 @@ import Foreign.Safe
 import Foreign
 #endif
 import Foreign.C
+import Control.Applicative ((<$>), (<*>))
 import Sound.Pulse.Internal.C2HS
 {#import Sound.Pulse.Internal.Volume #}
 {#import Sound.Pulse.Internal.Context #}
@@ -35,7 +36,21 @@ import Sound.Pulse.Internal.C2HS
 data RawSinkPortInfo
 {#pointer *sink_port_info as RawSinkPortInfoPtr -> RawSinkPortInfo #}
 
-data RawSinkInfo
+data RawSinkInfo = RawSinkInfo 
+    { sinkName'RawSinkInfo :: Maybe String
+    , sinkDesc'RawSinkInfo :: Maybe String
+    }
+   
+instance Storable RawSinkInfo where
+    sizeOf _ = {#sizeof pa_sink_info #}
+    alignment _ = 4
+    peek p = RawSinkInfo
+        <$> (peekNullableUTF8CString =<< ({#get pa_sink_info->name #} p))
+        <*> (peekNullableUTF8CString =<< ({#get pa_sink_info->description #} p))
+    poke p x = do
+        {#set pa_sink_info.name #} p undefined
+        {#set pa_sink_info.description #} p undefined
+        
 {#pointer *sink_info as RawSinkInfoPtr -> RawSinkInfo #}
 
 type RawSinkInfoCallback a = RawContextPtr -> RawSinkInfoPtr -> CInt -> RawUserData a -> IO ()
