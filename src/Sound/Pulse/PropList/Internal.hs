@@ -50,11 +50,60 @@ data Bus = Isa | Pci | Usb | Firewire | Bluetooth deriving (Eq, Show, Ord)
 -- | Class of a device. Used in 'DeviceClass'.
 data Class = Sound | Modem | Monitor | Filter deriving (Eq, Show, Ord)
 
+-- | Out marshaller for 'Class'.
+toRawClass :: Class -> String
+toRawClass cls = case cls of Sound   -> "sound"
+                             Modem   -> "modem"
+                             Monitor -> "monitor"
+                             Filter  -> "filter"
+
+-- | In marshaller for 'Class'.
+fromRawClass :: String -> Class
+fromRawClass clsStr = case clsStr of "sound"   -> Sound
+                                     "modem"   -> Modem
+                                     "monitor" -> Monitor
+                                     "filter"  -> Filter
+                                     _ -> error "unknown device class"
+
+
 -- | Form factor. Used in 'DeviceFormFactor'.
 data FormFactor = Internal | Speaker | Handset | Tv | Webcam
                 | Microphone | Headset | Headphone | HandsFree
                 | Car | Hifi | Computer | Portable
     deriving (Eq, Show, Ord)
+
+-- | Out marshaller for 'FormFactor'.
+toRawFormFactor :: FormFactor -> String
+toRawFormFactor formF = case formF of Internal   -> "internal"
+                                      Speaker    -> "speaker"
+                                      Handset    -> "handset"
+                                      Tv         -> "tv"
+                                      Webcam     -> "webcam"
+                                      Microphone -> "microphone"
+                                      Headset    -> "headset"
+                                      Headphone  -> "headphone"
+                                      HandsFree  -> "hands-free"
+                                      Car        -> "car"
+                                      Hifi       -> "hifi"
+                                      Computer   -> "computer"
+                                      Portable   -> "portable"
+
+-- | In marshaller for 'FormFactor'.
+fromRawFormFactor :: String -> FormFactor
+fromRawFormFactor formFStr = case formFStr of "internal"   -> Internal
+                                              "speaker"    -> Speaker
+                                              "handset"    -> Handset
+                                              "tv"         -> Tv
+                                              "webcam"     -> Webcam
+                                              "microphone" -> Microphone
+                                              "headset"    -> Headset
+                                              "headphone"  -> Headphone
+                                              "hands-free" -> HandsFree
+                                              "car"        -> Car
+                                              "hifi"       -> Hifi
+                                              "computer"   -> Computer
+                                              "portable"   -> Portable
+                                              _ -> error "unknown form factor"
 
 -- | Button clicked in an event. Used in 'EventMouseButton'.
 data MouseButton = MouseLeft | MouseMiddle | MouseRight deriving (Eq, Show, Ord)
@@ -174,6 +223,17 @@ propSpecs =
     , TextPropSpec "application.process.host"   "ApplicationProcessHost"   ''String        'id  'id
     , TextPropSpec "application.process.machine_id" "ApplicationProcessMachineId" ''String 'id  'id
     , TextPropSpec "application.process.session_id" "ApplicationProcessSessionId" ''Int    'show  'read
+    , TextPropSpec "device.string"              "DeviceString"             ''String        'id  'id
+    , TextPropSpec "device.api"                 "DeviceApi"                ''String        'id  'id
+    , TextPropSpec "device.description"         "DeviceDescription"        ''String        'id  'id
+    , TextPropSpec "device.bus_path"            "DeviceBusPath"            ''String        'id  'id
+    , TextPropSpec "device.serial"              "DeviceSerial"             ''String        'id  'id
+    , TextPropSpec "device.vendor.id"           "DeviceVendorId"           ''String        'id  'id
+    , TextPropSpec "device.vendor.name"         "DeviceVendorName"         ''String        'id  'id
+    , TextPropSpec "device.product.id"          "DeviceProductId"          ''String        'id  'id
+    , TextPropSpec "device.product.name"        "DeviceProductName"        ''String        'id  'id
+    , TextPropSpec "device.class"               "DeviceClass"              ''Class         'toRawClass  'fromRawClass
+    , TextPropSpec "device.form_factor"         "DeviceFormFactor"         ''FormFactor    'toRawFormFactor  'fromRawFormFactor
     ]
 
 -- | Generate 'PropTag'.
