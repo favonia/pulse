@@ -18,6 +18,7 @@ import Data.Typeable
 import Data.Dependent.Sum
 import Data.GADT.Compare
 import Data.GADT.Show
+import qualified Data.ByteString.Char8 as B
 import Language.Haskell.TH
 import System.Posix.Types
 
@@ -117,11 +118,14 @@ propSpecs =
     , PropSpec "media.software"     "MediaSoftware"     ''String      'id  'id
     , PropSpec "media.language"     "MediaLanguage"     ''String      'id  'id
     , PropSpec "media.filename"     "MediaFilename"     ''String      'id  'id
+    , PropSpec "media.icon"         "MediaIcon"         ''B.ByteString 'B.unpack  'B.pack
     , PropSpec "media.icon_name"    "MediaIconName"     ''String      'id  'id
     , PropSpec "media.role"         "MediaRole"         ''Role        'toRawRole  'fromRawRole
+
     , PropSpec "filter.want"        "FilterWant"        ''String      'id  'id
     , PropSpec "filter.apply"       "FilterApply"       ''String      'id  'id
     , PropSpec "filter.suppress"    "FilterSuppress"    ''String      'id  'id
+
     , PropSpec "event.id"           "EventId"           ''String      'id  'id
     , PropSpec "event.description"  "EventDescription"  ''String      'id  'id
     , PropSpec "event.mouse.x"      "EventMouseX"       ''Int         'show  'read
@@ -129,8 +133,10 @@ propSpecs =
     , PropSpec "event.mouse.hpos"   "EventMouseHpos"    ''Double      'show  'read
     , PropSpec "event.mouse.vpos"   "EventMouseVpos"    ''Double      'show  'read
     , PropSpec "event.mouse.button" "EventMouseButton"  ''MouseButton 'toRawMouseButton  'fromRawMouseButton
+
     , PropSpec "window.name"        "WindowName"        ''String      'id  'id
     , PropSpec "window.id"          "WindowId"          ''String      'id  'id
+    , PropSpec "window.icon"        "WindowIcon"        ''B.ByteString 'B.unpack  'B.pack
     , PropSpec "window.icon_name"   "WindowIconName"    ''String      'id  'id
     , PropSpec "window.x"           "WindowX"           ''Int         'show  'read
     , PropSpec "window.y"           "WindowY"           ''Int         'show  'read
@@ -143,9 +149,11 @@ propSpecs =
     , PropSpec "window.x11.screen"  "WindowX11Screen"   ''Int         'show  'read
     , PropSpec "window.x11.monitor" "WindowX11Monitor"  ''Int         'show  'read
     , PropSpec "window.x11.xid"     "WindowX11Xid"      ''Int         'show  'read
+
     , PropSpec "application.name"           "ApplicationName"          ''String        'id  'id
     , PropSpec "application.id"             "ApplicationId"            ''String        'id  'id
     , PropSpec "application.version"        "ApplicationVersion"       ''String        'id  'id
+    , PropSpec "application.icon"           "ApplicationIcon"          ''B.ByteString  'B.unpack  'B.pack
     , PropSpec "application.icon_name"      "ApplicationIconName"      ''String        'id  'id
     , PropSpec "application.language"       "ApplicationLanguage"      ''String        'id  'id
 #if !defined(mingw32_HOST_OS)
