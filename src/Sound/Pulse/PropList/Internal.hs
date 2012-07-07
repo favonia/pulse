@@ -57,7 +57,7 @@ toRawMouseButton btn = case btn of MouseLeft   -> "0"
 -- | In marshaller for 'MouseButton'.
 fromRawMouseButton :: String -> MouseButton
 fromRawMouseButton btnNoStr = case btnNoStr of "0" -> MouseLeft
-                                               "1" -> MouseMiddle 
+                                               "1" -> MouseMiddle
                                                "2" -> MouseRight
                                                _ -> error "unknown mouse button"
 
@@ -110,7 +110,7 @@ fromRawDesktop s =
 -- | Metadata for Template Haskell.
 propSpecs :: [PropSpec]
 propSpecs =
-    [ PropSpec "media.name"         "MediaName"         ''String      'id         'id
+    [ PropSpec "media.name"         "MediaName"         ''String      'id  'id
     , PropSpec "media.title"        "MediaTitle"        ''String      'id  'id
     , PropSpec "media.artist"       "MediaArtist"       ''String      'id  'id
     , PropSpec "media.copyright"    "MediaCopyright"    ''String      'id  'id
