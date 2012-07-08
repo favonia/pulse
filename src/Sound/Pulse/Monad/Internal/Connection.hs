@@ -29,15 +29,18 @@ module Sound.Pulse.Monad.Internal.Connection
     newConn,
     freeConn,
     ConnectionFail,
+    -- * Operation waiting
+    autoWait,
+    OperationFail,
     ) where
 
 import Prelude hiding (catch)
 
-import Data.Typeable
 import Control.Monad hiding (forM_)
 import Data.Foldable (forM_)
 import Control.Concurrent.STM
 import Control.Exception
+import Data.Typeable (Typeable)
 #if __GLASGOW_HASKELL__ >= 702
 import Foreign.Safe hiding (void)
 #else
@@ -51,7 +54,8 @@ import Sound.Pulse.Internal.Operation
 import Sound.Pulse.Internal.C2HS
 
 import Sound.Pulse.PropList
-import Sound.Pulse.Monad.Internal.MainLoop
+import Sound.Pulse.Monad.Internal.MainLoop hiding (autoWait)
+import qualified Sound.Pulse.Monad.Internal.MainLoop as M
 
 -- | The name of the server the monad is connecting to.
 data ServerName = DefaultServer | Named String
@@ -180,6 +184,19 @@ freeConn ctx = mask_ $ do
     quitLoop (ctxLoop ctx)
     freeLoop (ctxLoop ctx)
     contextUnref (ctxRaw ctx)
+
+-------------------------------------------------------------
+-- Operations
+-------------------------------------------------------------
+
+-- | Wait for an operation to finish and automatically
+--   unref (decrease the reference count of) the resource
+--   once the operation is done or cancelled.
+--   Throw 'OperationFail' if the operation is cancelled.
+--   The caller needs to increase the reference count if
+--   it really wants to keep a copy of the raw pointer.
+autoWait :: Context -> RawOperationPtr -> IO ()
+autoWait = M.autoWait . ctxLoop
 
 -------------------------------------------------------------
 -- Exceptions

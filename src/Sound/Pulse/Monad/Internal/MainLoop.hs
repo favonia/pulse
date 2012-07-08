@@ -26,9 +26,9 @@ module Sound.Pulse.Monad.Internal.MainLoop
     quitLoop,
     -- * Blocking
     blockLoop,
-    -- * Operation registering
-    wrapRawOp,
-    OperationState(..),
+    -- * Operation waiting
+    autoWait,
+    OperationFail,
     ) where
 
 import Data.Maybe (catMaybes)
@@ -37,6 +37,7 @@ import Control.Monad.Fix (fix)
 import Control.Concurrent
 import Control.Concurrent.STM
 import Control.Exception
+import Data.Typeable (Typeable)
 
 import Sound.Pulse.Internal.Def (OperationState(..))
 import Sound.Pulse.Internal.Operation
@@ -201,15 +202,28 @@ blockLoop ml code = bracket
 -- Operations
 -------------------------------------------------------------
 
--- | Wrap a raw operation and get a high-level monitor.
---   Monitors will be updated for each iteration. Note
---   that the loop will unref (decrease the reference count of)
---   the resource once the operation is done or cancelled.
+-- | Wait for an operation to finish and automatically
+--   unref (decrease the reference count of) the resource
+--   once the operation is done or cancelled.
+--   Throw 'OperationFail' if the operation is cancelled.
 --   The caller needs to increase the reference count if
 --   it really wants to keep a copy of the raw pointer.
---   (Why not just use the high-level monitor, eh?)
-wrapRawOp :: MainLoop -> RawOperationPtr -> IO (TVar OperationState)
-wrapRawOp ml raw = mask_ $ do
+autoWait :: MainLoop -> RawOperationPtr -> IO ()
+autoWait ml raw = mask_ $ do
     mon <- newTVarIO OperationRunning
     atomically $ modifyTVar' (mlOps ml) (Operation raw mon:)
-    return mon
+    atomically $ do
+        state <- readTVar mon
+        case state of
+            OperationRunning -> retry
+            OperationDone -> return ()
+            OperationCancelled -> throwSTM OperationFail
+
+-------------------------------------------------------------
+-- Exceptions
+-------------------------------------------------------------
+
+-- | 'autoWait' detected failing operation.
+data OperationFail = OperationFail deriving (Show, Typeable)
+
+instance Exception OperationFail where
