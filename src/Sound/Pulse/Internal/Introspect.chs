@@ -26,6 +26,7 @@ import Foreign
 #endif
 import Foreign.C
 import Control.Applicative ((<$>), (<*>))
+import Control.Monad (liftM)
 import Sound.Pulse.Internal.C2HS
 {#import Sound.Pulse.Internal.Volume #}
 {#import Sound.Pulse.Internal.Context #}
@@ -43,7 +44,7 @@ data RawSinkInfo = RawSinkInfo
    
 instance Storable RawSinkInfo where
     sizeOf _ = {#sizeof pa_sink_info #}
-    alignment _ = 4
+    alignment _ = {#alignof pa_sink_info #}
     peek p = RawSinkInfo
         <$> (peekNullableUTF8CString =<< ({#get pa_sink_info->name #} p))
         <*> (peekNullableUTF8CString =<< ({#get pa_sink_info->description #} p))
@@ -138,7 +139,20 @@ type RawSinkInfoCallback a = RawContextPtr -> RawSinkInfoPtr -> CInt -> RawUserD
 data RawSourcePortInfo
 {#pointer *source_port_info as RawSourcePortInfoPtr -> RawSourcePortInfo #}
 
-data RawSourceInfo
+data RawSourceInfo = RawSourceInfo 
+    { sourceName'RawSourceInfo :: Maybe String
+    , sourceDesc'RawSourceInfo :: Maybe String
+    }
+   
+instance Storable RawSourceInfo where
+    sizeOf _ = {#sizeof pa_source_info #}
+    alignment _ = {#alignof pa_source_info #}
+    peek p = RawSourceInfo
+        <$> (peekNullableUTF8CString =<< ({#get pa_source_info->name #} p))
+        <*> (peekNullableUTF8CString =<< ({#get pa_source_info->description #} p))
+    poke p x = do
+        {#set pa_source_info.name #} p undefined
+        {#set pa_source_info.description #} p undefined
 {#pointer *source_info as RawSourceInfoPtr -> RawSourceInfo #}
 
 
@@ -223,9 +237,33 @@ type RawSourceInfoCallback a = RawContextPtr -> RawSourceInfoPtr -> CInt -> RawU
     
 
 
-data RawServerInfo
+data RawServerInfo = RawServerInfo 
+    { userName'RawServerInfo :: Maybe String
+    , hostName'RawServerInfo :: Maybe String
+    , serverVersion'RawServerInfo :: Maybe String
+    , serverName'RawServerInfo :: Maybe String
+    , defaultSinkName'RawServerInfo :: Maybe String
+    , defaultSourceName'RawServerInfo :: Maybe String
+    }
 {#pointer *server_info as RawServerInfoPtr -> RawServerInfo #}
-
+   
+instance Storable RawServerInfo where
+    sizeOf _ = {#sizeof pa_server_info #}
+    alignment _ = {#alignof pa_server_info #}
+    peek p = RawServerInfo
+        <$> (peekNullableUTF8CString =<< ({#get pa_server_info->user_name #} p))
+        <*> (peekNullableUTF8CString =<< ({#get pa_server_info->host_name #} p))
+        <*> (peekNullableUTF8CString =<< ({#get pa_server_info->server_version #} p))
+        <*> (peekNullableUTF8CString =<< ({#get pa_server_info->server_name #} p))
+        <*> (peekNullableUTF8CString =<< ({#get pa_server_info->default_sink_name #} p))
+        <*> (peekNullableUTF8CString =<< ({#get pa_server_info->default_source_name #} p))
+    poke p x = do
+        {#set pa_server_info.user_name #} p undefined
+        {#set pa_server_info.host_name #} p undefined
+        {#set pa_server_info.server_version #} p undefined
+        {#set pa_server_info.server_name #} p undefined
+        {#set pa_server_info.default_sink_name #} p undefined
+        {#set pa_server_info.default_source_name #} p undefined
 
 type RawServerInfoCallback a = RawContextPtr -> RawServerInfoPtr -> RawUserData a -> IO ()
 
@@ -238,7 +276,18 @@ type RawServerInfoCallback a = RawContextPtr -> RawServerInfoPtr -> RawUserData 
     
 
 
-data RawModuleInfo
+data RawModuleInfo = RawModuleInfo 
+    { moduleName'RawModuleInfo :: Maybe String
+    }
+   
+instance Storable RawModuleInfo where
+    sizeOf _ = {#sizeof pa_module_info #}
+    alignment _ = {#alignof pa_module_info #}
+    peek p = RawModuleInfo
+        <$> (peekNullableUTF8CString =<< ({#get pa_module_info->name #} p))
+    poke p x = do
+        {#set pa_module_info.name #} p undefined
+        
 {#pointer *module_info as RawModuleInfoPtr -> RawModuleInfo #}
 
 
@@ -279,7 +328,20 @@ type RawContextIndexCallback a = RawContextPtr -> CUInt -> RawUserData a -> IO (
     } -> `RawOperationPtr'  id #}
     
 
-data RawClientInfo
+data RawClientInfo = RawClientInfo 
+    { clientName'RawClientInfo :: Maybe String
+    , driverName'RawClientInfo :: Maybe String
+    }
+   
+instance Storable RawClientInfo where
+    sizeOf _ = {#sizeof pa_client_info #}
+    alignment _ = {#alignof pa_client_info #}
+    peek p = RawClientInfo
+        <$> (peekNullableUTF8CString =<< ({#get pa_client_info->name #} p))
+        <*> (peekNullableUTF8CString =<< ({#get pa_client_info->driver #} p))
+    poke p x = do
+        {#set pa_client_info.name #} p undefined
+        {#set pa_client_info.driver #} p undefined
 {#pointer *client_info as RawClientInfoPtr -> RawClientInfo #}
 
 
@@ -316,7 +378,20 @@ data RawCardPortInfo
 {#pointer *card_port_info as RawCardPortInfoPtr -> RawCardPortInfo #}
 #endif
 
-data RawCardInfo
+data RawCardInfo = RawCardInfo 
+    { cardName'RawCardInfo :: Maybe String
+    , driverName'RawCardInfo :: Maybe String
+    }
+   
+instance Storable RawCardInfo where
+    sizeOf _ = {#sizeof pa_card_info #}
+    alignment _ = {#alignof pa_card_info #}
+    peek p = RawCardInfo
+        <$> (peekNullableUTF8CString =<< ({#get pa_card_info->name #} p))
+        <*> (peekNullableUTF8CString =<< ({#get pa_card_info->driver #} p))
+    poke p x = do
+        {#set pa_card_info.name #} p undefined
+        {#set pa_card_info.driver #} p undefined
 {#pointer *card_info as RawCardInfoPtr -> RawCardInfo #}
 
 
@@ -363,7 +438,20 @@ type RawCardInfoCallback a = RawContextPtr -> RawCardInfoPtr -> CInt -> RawUserD
     } -> `RawOperationPtr'  id #}
     
 
-data RawSinkInputInfo
+data RawSinkInputInfo = RawSinkInputInfo 
+    { sinkInputName'RawSinkInputInfo :: Maybe String
+    , driverName'RawSinkInputInfo :: Maybe String
+    }
+   
+instance Storable RawSinkInputInfo where
+    sizeOf _ = {#sizeof pa_sink_input_info #}
+    alignment _ = {#alignof pa_sink_input_info #}
+    peek p = RawSinkInputInfo
+        <$> (peekNullableUTF8CString =<< ({#get pa_sink_input_info->name #} p))
+        <*> (peekNullableUTF8CString =<< ({#get pa_sink_input_info->driver #} p))
+    poke p x = do
+        {#set pa_sink_input_info.name #} p undefined
+        {#set pa_sink_input_info.driver #} p undefined
 {#pointer *sink_input_info as RawSinkInputInfoPtr -> RawSinkInputInfo #}
 
 
@@ -402,7 +490,20 @@ type RawSinkInputInfoCallback a = RawContextPtr -> RawSinkInputInfoPtr -> CInt -
     
 
 
-data RawSourceOutputInfo
+data RawSourceOutputInfo = RawSourceOutputInfo 
+    { sourceOutputName'RawSourceOutputInfo :: Maybe String
+    , driverName'RawSourceOutputInfo :: Maybe String
+    }
+   
+instance Storable RawSourceOutputInfo where
+    sizeOf _ = {#sizeof pa_source_output_info #}
+    alignment _ = {#alignof pa_source_output_info #}
+    peek p = RawSourceOutputInfo
+        <$> (peekNullableUTF8CString =<< ({#get pa_source_output_info->name #} p))
+        <*> (peekNullableUTF8CString =<< ({#get pa_source_output_info->driver #} p))
+    poke p x = do
+        {#set pa_source_output_info.name #} p undefined
+        {#set pa_source_output_info.driver #} p undefined
 {#pointer *source_output_info as RawSourceOutputInfoPtr -> RawSourceOutputInfo #}
 
 
@@ -464,7 +565,20 @@ type RawSourceOutputInfoCallback a = RawContextPtr -> RawSourceOutputInfoPtr -> 
     
 
 
-data RawStatInfo
+data RawStatInfo = RawStatInfo 
+    { memblockTotal'RawStatInfo :: Int
+    , memblockTotalSize'RawStatInfo :: Int
+    }
+   
+instance Storable RawStatInfo where
+    sizeOf _ = {#sizeof pa_stat_info #}
+    alignment _ = {#alignof pa_stat_info #}
+    peek p = RawStatInfo
+        <$> liftM cIntConv ({#get pa_stat_info->memblock_total #} p)
+        <*> liftM cIntConv ({#get pa_stat_info->memblock_total_size #} p)
+    poke p x = do
+        {#set pa_stat_info.memblock_total #} p undefined
+        {#set pa_stat_info.memblock_total_size #} p undefined
 {#pointer *stat_info as RawStatInfoPtr -> RawStatInfo #}
 
 type RawStatInfoCallback a = RawContextPtr -> RawStatInfoPtr -> RawUserData a -> IO ()
@@ -477,7 +591,20 @@ type RawStatInfoCallback a = RawContextPtr -> RawStatInfoPtr -> RawUserData a ->
     } -> `RawOperationPtr'  id #}
     
 
-data RawSampleInfo
+data RawSampleInfo = RawSampleInfo 
+    { sampleName'RawSampleInfo :: Maybe String
+    , fileName'RawSampleInfo :: Maybe String
+    }
+   
+instance Storable RawSampleInfo where
+    sizeOf _ = {#sizeof pa_sample_info #}
+    alignment _ = {#alignof pa_sample_info #}
+    peek p = RawSampleInfo
+        <$> (peekNullableUTF8CString =<< ({#get pa_sample_info->name #} p))
+        <*> (peekNullableUTF8CString =<< ({#get pa_sample_info->filename #} p))
+    poke p x = do
+        {#set pa_sample_info.name #} p undefined
+        {#set pa_sample_info.filename #} p undefined
 {#pointer *sample_info as RawSampleInfoPtr -> RawSampleInfo #}
 
 type RawSampleInfoCallback a = RawContextPtr -> RawSampleInfoPtr -> CInt -> RawUserData a -> IO ()
