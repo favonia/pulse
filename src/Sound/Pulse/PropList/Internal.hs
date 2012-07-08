@@ -186,16 +186,11 @@ type IntendedRoles = [Role]
 
 -- | Out marshaller for 'IntendedRoles'.
 toRawIntendedRoles :: IntendedRoles -> String
-toRawIntendedRoles = intercalate "," . map toRawRole
+toRawIntendedRoles = toRawCommaList toRawRole
 
 -- | In marshaller for 'IntendedRoles'.
 fromRawIntendedRoles :: String -> IntendedRoles
-fromRawIntendedRoles [] = []
-fromRawIntendedRoles s =
-    let (first, rest) = break (== ',') s
-    in fromRawRole first : case rest of
-        [] -> []
-        (_:rest') -> fromRawIntendedRoles rest'
+fromRawIntendedRoles = fromRawCommaList fromRawRole
 
 -- | List of indexes. This type alias is created purely for our usage of Template Haskell.
 --   Used in 'WindowDesktop'.
@@ -203,16 +198,24 @@ type Desktop = [Int]
 
 -- | Out marshaller for 'Desktop'.
 toRawDesktop :: Desktop -> String
-toRawDesktop = intercalate "," . map show
+toRawDesktop = toRawCommaList show
 
 -- | In marshaller for 'Desktop'.
 fromRawDesktop :: String -> Desktop
-fromRawDesktop [] = []
-fromRawDesktop s =
+fromRawDesktop = fromRawCommaList read
+
+-- | Out marshaller for lists separated by commas
+toRawCommaList :: (a -> String) -> [a] -> String
+toRawCommaList to = intercalate "," . map to
+
+-- | In marshaller for lists separated by commas
+fromRawCommaList :: (String -> a) -> String -> [a]
+fromRawCommaList from [] = []
+fromRawCommaList from s =
     let (first, rest) = break (== ',') s
-    in read first : case rest of
+    in from first : case rest of
         [] -> []
-        (_:rest') -> fromRawDesktop rest'
+        (_:rest') -> fromRawCommaList from rest'
 
 -- | Metadata for Template Haskell.
 propSpecs :: [PropSpec]
