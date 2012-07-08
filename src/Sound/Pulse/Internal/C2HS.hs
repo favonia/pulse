@@ -66,6 +66,9 @@ module Sound.Pulse.Internal.C2HS
     , withUTF8CStringLen
     , peekNullableUTF8CString
     , withNullableUTF8CString
+    , useAsCStringLen
+    , useAsCStringLen'
+    , packCStringLen
     , UserData
     , RawUserData
     , castMaybeStablePtrToPtr
@@ -86,6 +89,7 @@ import GHC.IO.Encoding (utf8)
 #else
 import Codec.Binary.UTF8.String (encode, decode)
 #endif
+import Data.ByteString (ByteString, useAsCStringLen, packCStringLen)
 
 cIntConv :: (Integral a, Integral b) => a -> b
 cIntConv = fromIntegral
@@ -154,6 +158,9 @@ peekNullableUTF8CString = nullibleM peekUTF8CString
 withNullableUTF8CString :: Maybe String -> (CString -> IO a) -> IO a
 withNullableUTF8CString Nothing = ($ nullPtr)
 withNullableUTF8CString (Just s) = withUTF8CString s
+
+useAsCStringLen' :: Integral c => ByteString -> ((Ptr b, c) -> IO a) -> IO a
+useAsCStringLen' bstr code = useAsCStringLen bstr $ \(str, len) -> code (castPtr str, cIntConv len)
 
 type UserData a = Maybe (StablePtr a)
 type RawUserData a = Ptr ()

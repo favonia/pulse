@@ -14,22 +14,32 @@ This module provides Template Haskell generators for 'PropTag'.
 module Sound.Pulse.PropList.Internal where
 
 import Data.List (intercalate)
-import Data.Typeable
+import Data.ByteString (ByteString)
+import Data.ByteString.UTF8 (fromString, toString)
+#if !defined(mingw32_HOST_OS)
+import System.Posix.Types (ProcessID)
+#endif
+
 import Data.Dependent.Sum
 import Data.GADT.Compare
 import Data.GADT.Show
-import qualified Data.ByteString.Char8 as B
+
 import Language.Haskell.TH
-import System.Posix.Types
+import Data.Typeable (Typeable)
 
 -- | Specification of a property.
-data PropSpec = PropSpec
-    { propRawName :: String
-    , propHaskellName :: String
-    , propValueType :: Name
-    , propToRawValue :: Name
-    , propFromRawValue :: Name
-    }
+data PropSpec = TextPropSpec { propRawName :: String
+                             , propHaskellName :: String
+                             , propValueType :: Name
+                             , propToRawValue :: Name
+                             , propFromRawValue :: Name
+                             }
+              | BinaryPropSpec { propRawName :: String
+                               , propHaskellName :: String
+                               , propValueType :: Name
+                               , propToRawValue :: Name
+                               , propFromRawValue :: Name
+                               }
 
 -- | Access mode. Used in 'DeviceAccessMode'.
 data AccessMode = Mmap | MmapRewrite | Serial deriving (Eq, Show, Ord)
@@ -111,59 +121,59 @@ fromRawDesktop s =
 -- | Metadata for Template Haskell.
 propSpecs :: [PropSpec]
 propSpecs =
-    [ PropSpec "media.name"         "MediaName"         ''String      'id  'id
-    , PropSpec "media.title"        "MediaTitle"        ''String      'id  'id
-    , PropSpec "media.artist"       "MediaArtist"       ''String      'id  'id
-    , PropSpec "media.copyright"    "MediaCopyright"    ''String      'id  'id
-    , PropSpec "media.software"     "MediaSoftware"     ''String      'id  'id
-    , PropSpec "media.language"     "MediaLanguage"     ''String      'id  'id
-    , PropSpec "media.filename"     "MediaFilename"     ''String      'id  'id
-    , PropSpec "media.icon"         "MediaIcon"         ''B.ByteString 'B.unpack  'B.pack
-    , PropSpec "media.icon_name"    "MediaIconName"     ''String      'id  'id
-    , PropSpec "media.role"         "MediaRole"         ''Role        'toRawRole  'fromRawRole
+    [ TextPropSpec "media.name"         "MediaName"         ''String      'id  'id
+    , TextPropSpec "media.title"        "MediaTitle"        ''String      'id  'id
+    , TextPropSpec "media.artist"       "MediaArtist"       ''String      'id  'id
+    , TextPropSpec "media.copyright"    "MediaCopyright"    ''String      'id  'id
+    , TextPropSpec "media.software"     "MediaSoftware"     ''String      'id  'id
+    , TextPropSpec "media.language"     "MediaLanguage"     ''String      'id  'id
+    , TextPropSpec "media.filename"     "MediaFilename"     ''String      'id  'id
+    , BinaryPropSpec "media.icon"       "MediaIcon"         ''ByteString  'id  'id
+    , TextPropSpec "media.icon_name"    "MediaIconName"     ''String      'id  'id
+    , TextPropSpec "media.role"         "MediaRole"         ''Role        'toRawRole  'fromRawRole
 
-    , PropSpec "filter.want"        "FilterWant"        ''String      'id  'id
-    , PropSpec "filter.apply"       "FilterApply"       ''String      'id  'id
-    , PropSpec "filter.suppress"    "FilterSuppress"    ''String      'id  'id
+    , TextPropSpec "filter.want"        "FilterWant"        ''String      'id  'id
+    , TextPropSpec "filter.apply"       "FilterApply"       ''String      'id  'id
+    , TextPropSpec "filter.suppress"    "FilterSuppress"    ''String      'id  'id
 
-    , PropSpec "event.id"           "EventId"           ''String      'id  'id
-    , PropSpec "event.description"  "EventDescription"  ''String      'id  'id
-    , PropSpec "event.mouse.x"      "EventMouseX"       ''Int         'show  'read
-    , PropSpec "event.mouse.y"      "EventMouseY"       ''Int         'show  'read
-    , PropSpec "event.mouse.hpos"   "EventMouseHpos"    ''Double      'show  'read
-    , PropSpec "event.mouse.vpos"   "EventMouseVpos"    ''Double      'show  'read
-    , PropSpec "event.mouse.button" "EventMouseButton"  ''MouseButton 'toRawMouseButton  'fromRawMouseButton
+    , TextPropSpec "event.id"           "EventId"           ''String      'id  'id
+    , TextPropSpec "event.description"  "EventDescription"  ''String      'id  'id
+    , TextPropSpec "event.mouse.x"      "EventMouseX"       ''Int         'show  'read
+    , TextPropSpec "event.mouse.y"      "EventMouseY"       ''Int         'show  'read
+    , TextPropSpec "event.mouse.hpos"   "EventMouseHpos"    ''Double      'show  'read
+    , TextPropSpec "event.mouse.vpos"   "EventMouseVpos"    ''Double      'show  'read
+    , TextPropSpec "event.mouse.button" "EventMouseButton"  ''MouseButton 'toRawMouseButton  'fromRawMouseButton
 
-    , PropSpec "window.name"        "WindowName"        ''String      'id  'id
-    , PropSpec "window.id"          "WindowId"          ''String      'id  'id
-    , PropSpec "window.icon"        "WindowIcon"        ''B.ByteString 'B.unpack  'B.pack
-    , PropSpec "window.icon_name"   "WindowIconName"    ''String      'id  'id
-    , PropSpec "window.x"           "WindowX"           ''Int         'show  'read
-    , PropSpec "window.y"           "WindowY"           ''Int         'show  'read
-    , PropSpec "window.width"       "WindowWidth"       ''Int         'show  'read
-    , PropSpec "window.height"      "WindowHeight"      ''Int         'show  'read
-    , PropSpec "window.hpos"        "WindowHpos"        ''Double      'show  'read
-    , PropSpec "window.vpos"        "WindowVpos"        ''Double      'show  'read
-    , PropSpec "window.desktop"     "WindowDesktop"     ''Desktop     'toRawDesktop  'fromRawDesktop
-    , PropSpec "window.x11.display" "WindowX11Display"  ''String      'id  'id
-    , PropSpec "window.x11.screen"  "WindowX11Screen"   ''Int         'show  'read
-    , PropSpec "window.x11.monitor" "WindowX11Monitor"  ''Int         'show  'read
-    , PropSpec "window.x11.xid"     "WindowX11Xid"      ''Int         'show  'read
+    , TextPropSpec "window.name"        "WindowName"        ''String      'id  'id
+    , TextPropSpec "window.id"          "WindowId"          ''String      'id  'id
+    , BinaryPropSpec "window.icon"      "WindowIcon"        ''ByteString  'id  'id
+    , TextPropSpec "window.icon_name"   "WindowIconName"    ''String      'id  'id
+    , TextPropSpec "window.x"           "WindowX"           ''Int         'show  'read
+    , TextPropSpec "window.y"           "WindowY"           ''Int         'show  'read
+    , TextPropSpec "window.width"       "WindowWidth"       ''Int         'show  'read
+    , TextPropSpec "window.height"      "WindowHeight"      ''Int         'show  'read
+    , TextPropSpec "window.hpos"        "WindowHpos"        ''Double      'show  'read
+    , TextPropSpec "window.vpos"        "WindowVpos"        ''Double      'show  'read
+    , TextPropSpec "window.desktop"     "WindowDesktop"     ''Desktop     'toRawDesktop  'fromRawDesktop
+    , TextPropSpec "window.x11.display" "WindowX11Display"  ''String      'id  'id
+    , TextPropSpec "window.x11.screen"  "WindowX11Screen"   ''Int         'show  'read
+    , TextPropSpec "window.x11.monitor" "WindowX11Monitor"  ''Int         'show  'read
+    , TextPropSpec "window.x11.xid"     "WindowX11Xid"      ''Int         'show  'read
 
-    , PropSpec "application.name"           "ApplicationName"          ''String        'id  'id
-    , PropSpec "application.id"             "ApplicationId"            ''String        'id  'id
-    , PropSpec "application.version"        "ApplicationVersion"       ''String        'id  'id
-    , PropSpec "application.icon"           "ApplicationIcon"          ''B.ByteString  'B.unpack  'B.pack
-    , PropSpec "application.icon_name"      "ApplicationIconName"      ''String        'id  'id
-    , PropSpec "application.language"       "ApplicationLanguage"      ''String        'id  'id
+    , TextPropSpec "application.name"           "ApplicationName"          ''String        'id  'id
+    , TextPropSpec "application.id"             "ApplicationId"            ''String        'id  'id
+    , TextPropSpec "application.version"        "ApplicationVersion"       ''String        'id  'id
+    , BinaryPropSpec "application.icon"         "ApplicationIcon"          ''ByteString    'id  'id
+    , TextPropSpec "application.icon_name"      "ApplicationIconName"      ''String        'id  'id
+    , TextPropSpec "application.language"       "ApplicationLanguage"      ''String        'id  'id
 #if !defined(mingw32_HOST_OS)
-    , PropSpec "application.process.id"     "ApplicationProcessId"     ''ProcessID     'show  'read
+    , TextPropSpec "application.process.id"     "ApplicationProcessId"     ''ProcessID     'show  'read
 #endif
-    , PropSpec "application.process.binary" "ApplicationProcessBinary" ''String        'id  'id
-    , PropSpec "application.process.user"   "ApplicationProcessUser"   ''String        'id  'id
-    , PropSpec "application.process.host"   "ApplicationProcessHost"   ''String        'id  'id
-    , PropSpec "application.process.machine_id" "ApplicationProcessMachineId" ''String 'id  'id
-    , PropSpec "application.process.session_id" "ApplicationProcessSessionId" ''Int    'show  'read
+    , TextPropSpec "application.process.binary" "ApplicationProcessBinary" ''String        'id  'id
+    , TextPropSpec "application.process.user"   "ApplicationProcessUser"   ''String        'id  'id
+    , TextPropSpec "application.process.host"   "ApplicationProcessHost"   ''String        'id  'id
+    , TextPropSpec "application.process.machine_id" "ApplicationProcessMachineId" ''String 'id  'id
+    , TextPropSpec "application.process.session_id" "ApplicationProcessSessionId" ''Int    'show  'read
     ]
 
 -- | Generate 'PropTag'.
@@ -266,25 +276,32 @@ deriveShowTagPropTag = do
             , let pat = ConP (mkName $ propHaskellName ps) []
             ]]]
 
+isTextProp :: PropSpec -> Bool
+isTextProp (TextPropSpec {}) = True
+isTextProp (BinaryPropSpec {}) = False
+
 -- | Generate the in marshaller for 'PropList'.
 genToKeyValue :: Q [Dec]
 genToKeyValue = do
     let propTag = ConT $ mkName "PropTag"
     let dsumPropTag = ConT ''DSum `AppT` propTag
-    let string2 = TupleT 2 `AppT` ConT ''String `AppT` ConT ''String
+    let keyvalue = TupleT 2 `AppT` ConT ''String `AppT` ConT ''ByteString
     let func = mkName "toKeyValue"
     let var = mkName "x"
     return
-        [ SigD func $ ArrowT `AppT` dsumPropTag `AppT` string2
+        [ SigD func $ ArrowT `AppT` dsumPropTag `AppT` keyvalue
         , FunD func
             [ Clause
                 [InfixP pat '(:=>) (VarP var)]
                 (NormalB $ TupE
                     [ LitE $ StringL $ propRawName ps
-                    , VarE (propToRawValue ps) `AppE` VarE var
+                    , if isTextProp ps
+                        then VarE 'fromString `AppE` serialized
+                        else serialized
                     ]) []
             | ps <- propSpecs
             , let pat = ConP (mkName $ propHaskellName ps) []
+            , let serialized = VarE (propToRawValue ps) `AppE` VarE var
             ]]
 
 -- | Generate the out marshaller for 'PropList'.
@@ -293,19 +310,25 @@ genFromKeyValue = do
     let propTag = ConT $ mkName "PropTag"
     let dsumPropTag = ConT ''DSum `AppT` propTag
     let stringArrow = (ArrowT `AppT` ConT ''String `AppT`)
+    let byteStringArrow = (ArrowT `AppT` ConT ''ByteString `AppT`)
     let func = mkName "fromKeyValue"
     let var = mkName "x"
     return
-        [ SigD func $ stringArrow $ stringArrow dsumPropTag
+        [ SigD func $ stringArrow $ byteStringArrow dsumPropTag
         , FunD func $
             [ Clause
                 [ LitP $ StringL $ propRawName ps
                 , VarP var
                 ]
-                (NormalB $ InfixE
-                    (Just $ ConE $ mkName $ propHaskellName ps)
-                    (ConE '(:=>))
-                    (Just $ VarE (propFromRawValue ps) `AppE` VarE var))
+                (NormalB $
+                    ConE '(:=>)
+                    `AppE`
+                    ConE (mkName $ propHaskellName ps)
+                    `AppE`
+                    (VarE (propFromRawValue ps) `AppE`
+                        if isTextProp ps
+                            then VarE 'toString `AppE` VarE var
+                            else VarE var))
                 []
             | ps <- propSpecs
             ]

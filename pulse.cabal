@@ -51,17 +51,15 @@ Library
         Sound.Pulse.Monad.Internal.Connection
     Build-depends:
         base >= 4 && < 5,
-        bytestring,
         transformers >= 0.2 && < 0.4,
         MonadCatchIO-transformers >= 0.2 && < 0.4,
         stm == 2.4.*,
         -- TH 2.7.* is not buildable under GHC 7.2
         template-haskell >= 2.4 && < 2.8,
         dependent-map == 0.1.*,
-        dependent-sum == 0.2.*
-    if impl(ghc < 7.2)
-        Build-depends:
-            utf8-string == 0.3.*
+        dependent-sum == 0.2.*,
+        utf8-string == 0.3.*,
+        bytestring == 0.9.*
     Build-tools:
         c2hs, hsc2hs
 

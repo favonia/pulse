@@ -22,8 +22,6 @@ module Sound.Pulse.PropList
     PropList,
     module Data.Dependent.Map,
     PropTag(..),
-    toKeyValue,
-    fromKeyValue,
     AccessMode(..),
     Bus(..),
     Class(..),
@@ -32,6 +30,8 @@ module Sound.Pulse.PropList
     Role(..),
     Desktop,
     -- * Marshalling
+    toKeyValue,
+    fromKeyValue,
     RawPropList,
     RawPropListPtr,
     peekRawPropList,
@@ -42,7 +42,6 @@ module Sound.Pulse.PropList
     ) where
 
 import Prelude hiding (mapM_)
-import Data.Maybe (fromJust)
 import Data.Foldable (mapM_)
 import System.IO (fixIO)
 import Control.Monad hiding (mapM_)
@@ -82,6 +81,7 @@ $(genFromKeyValue)
 type PropList = DMap PropTag
 
 -- | Construct a 'PropList' out of the raw representation.
+--   Might throw 'ErrorCall' for conversion failure.
 peekRawPropList :: MonadIO m => RawPropListPtr -> m PropList
 peekRawPropList raw = liftIO $ with nullPtr $ \state -> do
     pl <- fixIO $ \loop -> do
@@ -89,8 +89,7 @@ peekRawPropList raw = liftIO $ with nullPtr $ \state -> do
         case key' of
             Nothing -> return []
             Just key -> do
-                -- XXX: 'fromJust' is ugly
-                value <- liftM fromJust $ proplistGets raw key
+                value <- proplistGet raw key
                 return $ fromKeyValue key value : loop
     return $ fromList pl
 
@@ -113,9 +112,9 @@ newRawPropList :: MonadIO m => PropList -> m RawPropListPtr
 newRawPropList pl = liftIO $ bracketOnError
     proplistNew
     proplistFree
-    $ \rawPl -> do
-        forM_ (toList pl) $ uncurry (proplistSets rawPl) . toKeyValue
-        return rawPl
+    $ \raw -> do
+        forM_ (toList pl) $ uncurry (proplistSet raw) . toKeyValue
+        return raw
 
 -- | Free the allocated raw 'PropList'.
 freeRawPropList :: MonadIO m => RawPropListPtr -> m ()
