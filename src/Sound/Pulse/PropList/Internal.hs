@@ -192,10 +192,10 @@ toRawIntendedRoles = intercalate "," . map toRawRole
 fromRawIntendedRoles :: String -> IntendedRoles
 fromRawIntendedRoles [] = []
 fromRawIntendedRoles s =
-  let (first, rest) = break (== ',') s
-  in fromRawRole first : case rest of
-      [] -> []
-      (_:rest') -> fromRawIntendedRoles rest'
+    let (first, rest) = break (== ',') s
+    in fromRawRole first : case rest of
+        [] -> []
+        (_:rest') -> fromRawIntendedRoles rest'
 
 -- | List of indexes. This type alias is created purely for our usage of Template Haskell.
 --   Used in 'WindowDesktop'.
