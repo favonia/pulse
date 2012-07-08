@@ -34,7 +34,6 @@ import Sound.Pulse.Internal.Context
 import Sound.Pulse.Internal.Operation
 import Sound.Pulse.Internal.Introspect
 
-import Sound.Pulse.Monad.Internal.MainLoop
 import Sound.Pulse.Monad.Internal.Connection
 
 
@@ -58,23 +57,15 @@ foreign import ccall "&_pulse_private_sinkInfoCallback"
     wrappedSinkInfoCallback :: FunPtr (RawSinkInfoCallback a)
 
 getSinkInfo :: Context -> IO [RawSinkInfo]
-getSinkInfo ctx = mask_ $ bracketOnError
+getSinkInfo ctx = mask_ $ bracket
     (do
         mon <- newTVarIO []
         monPtr <- newStablePtr mon
         return (mon, monPtr))
     (freeStablePtr . snd)
     $ \(mon, monPtr) -> do
-        let loop = ctxLoop ctx
-            rawCtxPtr = ctxRaw ctx
-        rawOpPtr <- contextGetSinkInfoList rawCtxPtr wrappedSinkInfoCallback (Just monPtr)
-        monOpState <- wrapRawOp loop rawOpPtr
-        atomically $ do
-            state <- readTVar monOpState
-            case state of 
-               OperationRunning -> retry
-               OperationDone -> return ()
-               OperationCancelled -> throwSTM OperationFail
+        let rawCtxPtr = ctxRaw ctx
+        autoWait ctx =<< contextGetSinkInfoList rawCtxPtr wrappedSinkInfoCallback (Just monPtr)
         rawSinkInfoList <- readTVarIO mon 
         return rawSinkInfoList
 
@@ -100,23 +91,15 @@ foreign import ccall "&_pulse_private_sourceInfoCallback"
 
 
 getSourceInfo :: Context -> IO [RawSourceInfo]
-getSourceInfo ctx = mask_ $ bracketOnError 
+getSourceInfo ctx = mask_ $ bracket
     (do
         mon <- newTVarIO []
         monPtr <- newStablePtr mon
         return (mon, monPtr))
     (freeStablePtr . snd)
     $ \(mon, monPtr) -> do
-        let loop = ctxLoop ctx
-            rawCtxPtr = ctxRaw ctx
-        rawOpPtr <- contextGetSourceInfoList rawCtxPtr wrappedSourceInfoCallback (Just monPtr)
-        monOpState <- wrapRawOp loop rawOpPtr
-        atomically $ do
-            state <- readTVar monOpState
-            case state of 
-               OperationRunning -> retry
-               OperationDone -> return ()
-               OperationCancelled -> throwSTM OperationFail
+        let rawCtxPtr = ctxRaw ctx
+        autoWait ctx =<< contextGetSourceInfoList rawCtxPtr wrappedSourceInfoCallback (Just monPtr)
         rawSourceInfoList <- readTVarIO mon 
         return rawSourceInfoList
 
@@ -136,26 +119,14 @@ foreign import ccall "&_pulse_private_serverInfoCallback"
     wrappedServerInfoCallback :: FunPtr (RawServerInfoCallback a)
 
 getServerInfo :: Context -> IO RawServerInfo
-getServerInfo ctx = mask_ $ bracketOnError 
+getServerInfo ctx = mask_ $ bracket
     (do
         mon <- newTVarIO $ RawServerInfo Nothing Nothing Nothing Nothing Nothing Nothing
         monPtr <- newStablePtr mon
         return (mon, monPtr))
     (freeStablePtr . snd)
     $ \(mon, monPtr) -> do
-        let loop = ctxLoop ctx
-            rawCtxPtr = ctxRaw ctx
-        rawOpPtr <- contextGetServerInfo rawCtxPtr wrappedServerInfoCallback (Just monPtr)
-        monOpState <- wrapRawOp loop rawOpPtr
-        atomically $ do
-            state <- readTVar monOpState
-            case state of 
-               OperationRunning -> retry
-               OperationDone -> return ()
-               OperationCancelled -> throwSTM OperationFail
+        let rawCtxPtr = ctxRaw ctx
+        autoWait ctx =<< contextGetServerInfo rawCtxPtr wrappedServerInfoCallback (Just monPtr)
         rawServerInfo <- readTVarIO mon 
         return rawServerInfo
-
-data OperationFail = OperationFail deriving (Show, Typeable)
-
-instance Exception OperationFail where
