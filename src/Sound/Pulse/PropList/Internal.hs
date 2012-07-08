@@ -292,6 +292,16 @@ propSpecs =
     , TextPropSpec "device.profile.name"        "DeviceProfileName"        ''String        'id  'id
     , TextPropSpec "device.intended_roles"      "DeviceIntendedRoles"      ''IntendedRoles 'toRawIntendedRoles  'fromRawIntendedRoles
     , TextPropSpec "device.profile.description" "DeviceProfileDescription" ''String        'id  'id
+
+    , TextPropSpec "module.author"              "ModuleAuthor"             ''String        'id  'id
+    , TextPropSpec "module.description"         "ModuleDescription"        ''String        'id  'id
+    , TextPropSpec "module.usage"               "ModuleUsage"              ''String        'id  'id
+    , TextPropSpec "module.version"             "ModuleVersion"            ''String        'id  'id
+
+    , TextPropSpec "format.sample_format"       "FormatSampleFormat"       ''String        'id  'id
+    , TextPropSpec "format.rate"                "FormatRate"               ''Int           'show  'read
+    , TextPropSpec "format.channels"            "FormatChannels"           ''Int           'show  'read
+    , TextPropSpec "format.channel_map"         "FormatChannelMap"         ''String        'id  'id
     ]
 
 -- | Generate 'PropTag'.
