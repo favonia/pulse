@@ -44,8 +44,38 @@ data PropSpec = TextPropSpec { propRawName :: String
 -- | Access mode. Used in 'DeviceAccessMode'.
 data AccessMode = Mmap | MmapRewrite | Serial deriving (Eq, Show, Ord)
 
+-- | Out marshaller for 'AccessMode'.
+toRawAccessMode :: AccessMode -> String
+toRawAccessMode mode = case mode of Mmap        -> "mmap"
+                                    MmapRewrite -> "mmap_rewrite"
+                                    Serial      -> "serial"
+
+-- | In marshaller for 'AccessMode'.
+fromRawAccessMode :: String -> AccessMode
+fromRawAccessMode modeStr = case modeStr of "mmap"         -> Mmap
+                                            "mmap_rewrite" -> MmapRewrite
+                                            "serial"       -> Serial
+                                            _ -> error "unknown access mode"
+
 -- | Bus type. Used in 'DeviceBus'.
 data Bus = Isa | Pci | Usb | Firewire | Bluetooth deriving (Eq, Show, Ord)
+
+-- | Out marshaller for 'Bus'.
+toRawBus :: Bus -> String
+toRawBus bus = case bus of Isa       -> "isa"
+                           Pci       -> "pci"
+                           Usb       -> "usb"
+                           Firewire  -> "firewire"
+                           Bluetooth -> "bluetooth"
+
+-- | In marshaller for 'Bus'.
+fromRawBus :: String -> Bus
+fromRawBus busStr = case busStr of "isa"       -> Isa
+                                   "pci"       -> Pci
+                                   "usb"       -> Usb
+                                   "firewire"  -> Firewire
+                                   "bluetooth" -> Bluetooth
+                                   _ -> error "unknown bus"
 
 -- | Class of a device. Used in 'DeviceClass'.
 data Class = Sound | Modem | Monitor | Filter deriving (Eq, Show, Ord)
@@ -150,6 +180,23 @@ fromRawRole roleStr = case roleStr of "video" -> Video
                                       "test" -> Test
                                       _ -> error "unknown role"
 
+-- | List of Roles. This type alias is created purely for our usage of Template Haskell.
+--   Used in 'WindowDesktop'.
+type IntendedRoles = [Role]
+
+-- | Out marshaller for 'IntendedRole'.
+toRawIntendedRoles :: IntendedRoles -> String
+toRawIntendedRoles = intercalate "," . map toRawRole
+
+-- | In marshaller for 'IntendedRole'.
+fromRawIntendedRoles :: String -> IntendedRoles
+fromRawIntendedRoles [] = []
+fromRawIntendedRoles s =
+  let (first, rest) = break (== ',') s
+  in fromRawRole first : case rest of
+      [] -> []
+      (_:rest') -> fromRawIntendedRoles rest'
+
 -- | List of indexes. This type alias is created purely for our usage of Template Haskell.
 --   Used in 'WindowDesktop'.
 type Desktop = [Int]
@@ -223,6 +270,7 @@ propSpecs =
     , TextPropSpec "application.process.host"   "ApplicationProcessHost"   ''String        'id  'id
     , TextPropSpec "application.process.machine_id" "ApplicationProcessMachineId" ''String 'id  'id
     , TextPropSpec "application.process.session_id" "ApplicationProcessSessionId" ''Int    'show  'read
+
     , TextPropSpec "device.string"              "DeviceString"             ''String        'id  'id
     , TextPropSpec "device.api"                 "DeviceApi"                ''String        'id  'id
     , TextPropSpec "device.description"         "DeviceDescription"        ''String        'id  'id
@@ -232,8 +280,18 @@ propSpecs =
     , TextPropSpec "device.vendor.name"         "DeviceVendorName"         ''String        'id  'id
     , TextPropSpec "device.product.id"          "DeviceProductId"          ''String        'id  'id
     , TextPropSpec "device.product.name"        "DeviceProductName"        ''String        'id  'id
-    , TextPropSpec "device.class"               "DeviceClass"              ''Class         'toRawClass  'fromRawClass
+    , TextPropSpec "device.class"               "DeviceClass"              ''Class         'toRawClass       'fromRawClass
     , TextPropSpec "device.form_factor"         "DeviceFormFactor"         ''FormFactor    'toRawFormFactor  'fromRawFormFactor
+    , TextPropSpec "device.bus"                 "DeviceBus"                ''Bus           'toRawBus         'fromRawBus
+    , BinaryPropSpec "device.icon"              "DeviceIcon"               ''ByteString    'id  'id
+    , TextPropSpec "device.icon_name"           "DeviceIconName"           ''String        'id  'id
+    , TextPropSpec "device.access_mode"         "DeviceAccessMode"         ''AccessMode    'toRawAccessMode  'fromRawAccessMode
+    , TextPropSpec "device.master_device"       "DeviceMasterDevice"       ''String        'id  'id
+    , TextPropSpec "device.buffering.buffer_size"   "DeviceBufferingBufferSize"   ''Int    'show  'read
+    , TextPropSpec "device.buffering.fragment_size" "DeviceBufferingFragmentSize" ''Int    'show  'read
+    , TextPropSpec "device.profile.name"        "DeviceProfileName"        ''String        'id  'id
+    , TextPropSpec "device.intended_roles"      "DeviceIntendedRoles"      ''IntendedRoles 'toRawIntendedRoles  'fromRawIntendedRoles
+    , TextPropSpec "device.profile.description" "DeviceProfileDescription" ''String        'id  'id
     ]
 
 -- | Generate 'PropTag'.
