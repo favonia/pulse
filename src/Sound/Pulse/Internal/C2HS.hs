@@ -58,8 +58,8 @@ module Sound.Pulse.Internal.C2HS
     , cToEnum
     , cFromEnum
     , combineBitMasks
-    , nullible
-    , nullibleM
+    , nullable
+    , nullableM
     , toMaybePtr
     , peekUTF8CString
     , withUTF8CString
@@ -118,16 +118,16 @@ cFromEnum = cIntConv . fromEnum
 combineBitMasks :: (Enum a, Bits b) => [a] -> b
 combineBitMasks = foldl (.|.) 0 . map (fromIntegral . fromEnum)
 
-nullible :: (Ptr a -> b) -> Ptr a -> Maybe b
-nullible conv ptr = if ptr == nullPtr then Nothing else Just $ conv ptr
+nullable :: (Ptr a -> b) -> Ptr a -> Maybe b
+nullable conv ptr = if ptr == nullPtr then Nothing else Just $ conv ptr
 
-nullibleM :: (Ptr a -> IO b) -> Ptr a -> IO (Maybe b)
-nullibleM peeker ptr = if ptr == nullPtr
+nullableM :: (Ptr a -> IO b) -> Ptr a -> IO (Maybe b)
+nullableM peeker ptr = if ptr == nullPtr
     then return Nothing
     else liftM Just $ peeker ptr
 
 toMaybePtr :: Ptr a -> Maybe (Ptr a)
-toMaybePtr = nullible id
+toMaybePtr = nullable id
 
 #if __GLASGOW_HASKELL__ >= 702
 peekUTF8CString :: CString -> IO String
@@ -153,7 +153,7 @@ withUTF8CStringLen str = withArrayLen (map cIntConv . encode $ str) . flip . cur
 #endif
 
 peekNullableUTF8CString :: CString -> IO (Maybe String)
-peekNullableUTF8CString = nullibleM peekUTF8CString
+peekNullableUTF8CString = nullableM peekUTF8CString
 
 withNullableUTF8CString :: Maybe String -> (CString -> IO a) -> IO a
 withNullableUTF8CString Nothing = ($ nullPtr)
@@ -170,4 +170,4 @@ castMaybeStablePtrToPtr Nothing = nullPtr
 castMaybeStablePtrToPtr (Just p) = castStablePtrToPtr p
 
 castPtrToMaybeStable :: Ptr () -> Maybe (StablePtr a)
-castPtrToMaybeStable = nullible castPtrToStablePtr
+castPtrToMaybeStable = nullable castPtrToStablePtr
