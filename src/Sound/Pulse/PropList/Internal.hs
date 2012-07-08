@@ -13,6 +13,7 @@ This module provides Template Haskell generators for 'PropTag'.
 -}
 module Sound.Pulse.PropList.Internal where
 
+import Data.Word
 import Data.List (intercalate)
 import Data.ByteString (ByteString)
 import Data.ByteString.UTF8 (fromString, toString)
@@ -194,7 +195,7 @@ fromRawIntendedRoles = fromRawCommaList fromRawRole
 
 -- | List of indexes. This type alias is created purely for our usage of Template Haskell.
 --   Used in 'WindowDesktop'.
-type Desktop = [Int]
+type Desktop = [Word]
 
 -- | Out marshaller for 'Desktop'.
 toRawDesktop :: Desktop -> String
@@ -302,8 +303,8 @@ propSpecs =
     , TextPropSpec "module.version"             "ModuleVersion"            ''String        'id  'id
 
     , TextPropSpec "format.sample_format"       "FormatSampleFormat"       ''String        'id  'id
-    , TextPropSpec "format.rate"                "FormatRate"               ''Int           'show  'read
-    , TextPropSpec "format.channels"            "FormatChannels"           ''Int           'show  'read
+    , TextPropSpec "format.rate"                "FormatRate"               ''Word          'show  'read
+    , TextPropSpec "format.channels"            "FormatChannels"           ''Word          'show  'read
     , TextPropSpec "format.channel_map"         "FormatChannelMap"         ''String        'id  'id
     ]
 
