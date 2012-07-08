@@ -181,14 +181,14 @@ fromRawRole roleStr = case roleStr of "video" -> Video
                                       _ -> error "unknown role"
 
 -- | List of Roles. This type alias is created purely for our usage of Template Haskell.
---   Used in 'WindowDesktop'.
+--   Used in 'DeviceIntendedRoles'.
 type IntendedRoles = [Role]
 
--- | Out marshaller for 'IntendedRole'.
+-- | Out marshaller for 'IntendedRoles'.
 toRawIntendedRoles :: IntendedRoles -> String
 toRawIntendedRoles = intercalate "," . map toRawRole
 
--- | In marshaller for 'IntendedRole'.
+-- | In marshaller for 'IntendedRoles'.
 fromRawIntendedRoles :: String -> IntendedRoles
 fromRawIntendedRoles [] = []
 fromRawIntendedRoles s =
