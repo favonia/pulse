@@ -211,7 +211,7 @@ toRawCommaList to = intercalate "," . map to
 
 -- | In marshaller for lists separated by commas
 fromRawCommaList :: (String -> a) -> String -> [a]
-fromRawCommaList from [] = []
+fromRawCommaList _ [] = []
 fromRawCommaList from s =
     let (first, rest) = break (== ',') s
     in from first : case rest of
