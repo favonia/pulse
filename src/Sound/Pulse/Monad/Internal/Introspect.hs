@@ -33,6 +33,7 @@ import Sound.Pulse.Internal.C2HS
 import Sound.Pulse.Internal.Context
 import Sound.Pulse.Internal.Operation
 import Sound.Pulse.Internal.Introspect
+import Sound.Pulse.Internal.Volume
 
 import Sound.Pulse.Monad.Internal.Connection
 
@@ -40,13 +41,13 @@ import Sound.Pulse.Monad.Internal.Connection
 -- | Callback for getting sink info
 sinkInfoCallback :: RawSinkInfoCallback a
 sinkInfoCallback rawCtxPtr rawSinkInfoPtr eol monPtr'
-    | eol >= 0 = 
+    | eol == 0 =
         forM_ (castPtrToMaybeStable monPtr') $ \monPtr -> do
             mon <- deRefStablePtr monPtr
             rawSinkInfoList  <- readTVarIO mon
             currRawSinkInfo <- peek rawSinkInfoPtr
             atomically $ writeTVar mon (currRawSinkInfo:rawSinkInfoList)
-    | otherwise = 
+    | otherwise =
         -- error, do nothing
         return ()
 
@@ -66,20 +67,54 @@ getSinkInfo ctx = mask_ $ bracket
     $ \(mon, monPtr) -> do
         let rawCtxPtr = ctxRaw ctx
         autoWait ctx =<< contextGetSinkInfoList rawCtxPtr wrappedSinkInfoCallback (Just monPtr)
-        rawSinkInfoList <- readTVarIO mon 
+        rawSinkInfoList <- readTVarIO mon
         return rawSinkInfoList
+
+
+-- | Callback for getting sink info
+contextSuccessCallback :: RawContextSuccessCallback a
+contextSuccessCallback rawCtxPtr isSuccessful monPtr'
+    | isSuccessful > 0 =
+        forM_ (castPtrToMaybeStable monPtr') $ \monPtr -> do
+            mon <- deRefStablePtr monPtr
+            atomically $ writeTVar mon True
+    | otherwise =
+        forM_ (castPtrToMaybeStable monPtr') $ \monPtr -> do
+            mon <- deRefStablePtr monPtr
+            atomically $ writeTVar mon False
+
+-- | Ugly trick to create a static C wrapper.
+foreign export ccall "_pulse_private_contextSuccessCallback"
+    contextSuccessCallback :: RawContextSuccessCallback a
+foreign import ccall "&_pulse_private_contextSuccessCallback"
+    wrappedContextSuccessCallback :: FunPtr (RawContextSuccessCallback a)
+
+
+setSinkVolumeByName :: Context -> String -> RawCVolume -> IO Bool
+setSinkVolumeByName ctx name cvol = mask_ $ bracket
+    (do
+        mon <- newTVarIO False
+        monPtr <- newStablePtr mon
+        return (mon, monPtr))
+    (freeStablePtr . snd)
+    $ \(mon, monPtr) -> do
+        let rawCtxPtr = ctxRaw ctx
+            rawCVolPtr = volRaw cvol
+        autoWait ctx =<< contextSetSinkVolumeByName rawCtxPtr name rawCVolPtr wrappedContextSuccessCallback (Just monPtr)
+        isSuccessful <- readTVarIO mon
+        return isSuccessful
 
 
 -- | Callback for getting source info
 sourceInfoCallback :: RawSourceInfoCallback a
 sourceInfoCallback rawCtxPtr rawSourceInfoPtr eol monPtr'
-    | eol >= 0 = 
+    | eol == 0 =
         forM_ (castPtrToMaybeStable monPtr') $ \monPtr -> do
             mon <- deRefStablePtr monPtr
             rawSourceInfoList  <- readTVarIO mon
             currRawSourceInfo <- peek rawSourceInfoPtr
             atomically $ writeTVar mon (currRawSourceInfo:rawSourceInfoList)
-    | otherwise = 
+    | otherwise =
         -- error, do nothing
         return ()
 
@@ -100,13 +135,13 @@ getSourceInfo ctx = mask_ $ bracket
     $ \(mon, monPtr) -> do
         let rawCtxPtr = ctxRaw ctx
         autoWait ctx =<< contextGetSourceInfoList rawCtxPtr wrappedSourceInfoCallback (Just monPtr)
-        rawSourceInfoList <- readTVarIO mon 
+        rawSourceInfoList <- readTVarIO mon
         return rawSourceInfoList
 
 
 -- | Callback for getting source info
 serverInfoCallback :: RawServerInfoCallback a
-serverInfoCallback rawCtxPtr rawServerInfoPtr monPtr' = 
+serverInfoCallback rawCtxPtr rawServerInfoPtr monPtr' =
     forM_ (castPtrToMaybeStable monPtr') $ \monPtr -> do
         mon <- deRefStablePtr monPtr
         currRawServerInfo <- peek rawServerInfoPtr
@@ -128,5 +163,5 @@ getServerInfo ctx = mask_ $ bracket
     $ \(mon, monPtr) -> do
         let rawCtxPtr = ctxRaw ctx
         autoWait ctx =<< contextGetServerInfo rawCtxPtr wrappedServerInfoCallback (Just monPtr)
-        rawServerInfo <- readTVarIO mon 
+        rawServerInfo <- readTVarIO mon
         return rawServerInfo

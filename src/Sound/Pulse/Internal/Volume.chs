@@ -25,10 +25,29 @@ import Foreign.Safe
 import Foreign
 #endif
 
+import Control.Monad (liftM)
+
+import Sound.Pulse.Internal.C2HS
+
 #include <pulse/volume.h>
 
 type Volume = Integer
 
-data RawCVolume
-{#pointer *pa_cvolume as RawCVolumePtr -> RawCVolume #}
+data RawCVolume = CVolume
+    { channeVolumes :: [Volume]
+    , volRaw :: RawCVolumePtr
+    }
 
+instance Storable RawCVolume where
+    sizeOf _ = {#sizeof pa_cvolume #}
+    alignment _ = {#alignof pa_cvolume #}
+    peek p = do
+        channelNum <- liftM cIntConv ({#get pa_cvolume->channels #} p)
+        rawArrayHead <- ({#get pa_cvolume->values #} p)
+        {- channelVolumes <- liftM cIntConv $ peekArray channelNum rawArrayHead -}
+        return $ CVolume undefined p
+    poke p (CVolume vol raw) = do
+        {#set pa_cvolume.channels #} p undefined
+        {#set pa_cvolume.values #} p undefined
+
+{#pointer *pa_cvolume as RawCVolumePtr -> RawCVolume #}
