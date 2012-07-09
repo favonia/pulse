@@ -27,6 +27,7 @@ Library
     Pkgconfig-depends:
         libpulse >= 1.0 && < 3.0
     Exposed-modules:
+        Sound.Pulse
         Sound.Pulse.Monad
         Sound.Pulse.PropList
         Sound.Pulse.Volume
