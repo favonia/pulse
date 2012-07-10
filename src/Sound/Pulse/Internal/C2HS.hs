@@ -1,25 +1,12 @@
-{-# LANGUAGE CPP #-}
-#if __GLASGOW_HASKELL__ >= 702
-{-# LANGUAGE Safe #-}
-#endif
-{- |
-Module      :  Sound.Pulse.Internal.C2HS
-License     :  BSD3
+{-
+This file is part of Pulse, a Haskell binding to PulseAudio library.
 
-Maintainer  :  favonia@gmail.com
-Stability   :  experimental
-Portability :  non-portable (GHC only)
-
-C2HS marshallers
-
-At this point c2hs users are left writing their own marshalling functions.
-Unfortunately marshallers have to be names, not arbitrary expressions.
-For the details, see
-<http://stackoverflow.com/questions/9471902/whats-the-modern-way-to-access-c2hs-marshalling-functions>
+Pulse is free software: you can redistribute it and/or modify it under
+BSD-3. You should have received a copy of the BSD-3 License along with
+Pulse. If not, see <http://www.opensource.org/licenses/BSD-3-clause>.
 
 This file was modified from the marshalling library written by
 Manuel M T Chakravarty, released under BSD-like license.
-
 -}
 
 --  C->Haskell Compiler: Marshalling library
@@ -48,6 +35,22 @@ Manuel M T Chakravarty, released under BSD-like license.
 --  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 --  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+{-# LANGUAGE CPP #-}
+#if __GLASGOW_HASKELL__ >= 702
+{-# LANGUAGE Safe #-}
+#endif
+
+{- |
+C2HS marshallers
+
+At this point c2hs users are left writing their own marshalling functions.
+Unfortunately marshallers have to be names, not arbitrary expressions.
+For the details, see
+<http://stackoverflow.com/questions/9471902/whats-the-modern-way-to-access-c2hs-marshalling-functions>
+
+This file was modified from the marshalling library written by
+Manuel M T Chakravarty, released under BSD-like license.
+-}
 module Sound.Pulse.Internal.C2HS
     ( cIntConv
     , withIntConv

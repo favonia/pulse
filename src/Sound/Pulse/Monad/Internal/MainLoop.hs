@@ -1,20 +1,20 @@
+{-
+This file is part of Pulse, a Haskell binding to PulseAudio library.
+
+Pulse is free software: you can redistribute it and/or modify it under
+BSD-3. You should have received a copy of the BSD-3 License along with
+Pulse. If not, see <http://www.opensource.org/licenses/BSD-3-clause>.
+-}
+
 {-# LANGUAGE CPP #-}
 #if __GLASGOW_HASKELL__ >= 702
 {-# LANGUAGE Safe #-}
 #endif
 {-# LANGUAGE DeriveDataTypeable #-}
+
 {- |
-Module      :  Sound.Pulse.Monad.Internal.MainLoop
-Copyright   :  (c) Favonia
-License     :  BSD3
-
-Maintainer  :  favonia@gmail.com
-Stability   :  experimental
-Portability :  non-portable (GHC only)
-
 High-level interface for mainloop.
 -}
-
 module Sound.Pulse.Monad.Internal.MainLoop
     (
     -- * High-level main loop

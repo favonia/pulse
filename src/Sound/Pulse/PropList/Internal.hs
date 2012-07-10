@@ -1,14 +1,15 @@
+{-
+This file is part of Pulse, a Haskell binding to PulseAudio library.
+
+Pulse is free software: you can redistribute it and/or modify it under
+BSD-3. You should have received a copy of the BSD-3 License along with
+Pulse. If not, see <http://www.opensource.org/licenses/BSD-3-clause>.
+-}
+
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE CPP #-}
+
 {- |
-Module      :  Sound.Pulse.PropList.Internal
-Copyright   :  (c) Favonia
-License     :  BSD3
-
-Maintainer  :  favonia@gmail.com
-Stability   :  experimental
-Portability :  non-portable (GHC only)
-
 This module provides Template Haskell generators for 'PropTag'.
 -}
 module Sound.Pulse.PropList.Internal where

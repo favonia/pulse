@@ -1,13 +1,12 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-
+This file is part of Pulse, a Haskell binding to PulseAudio library.
+
+Pulse is free software: you can redistribute it and/or modify it under
+BSD-3. You should have received a copy of the BSD-3 License along with
+Pulse. If not, see <http://www.opensource.org/licenses/BSD-3-clause>.
+-}
+
 {- |
-Module      :  Sound.Pulse.Volume
-Copyright   :  (c) Favonia
-License     :  BSD3
-
-Maintainer  :  favonia@gmail.com
-Stability   :  experimental
-Portability :  non-portable (GHC only)
-
 This module provides the utilities for volume.
 -}
 module Sound.Pulse.Volume
