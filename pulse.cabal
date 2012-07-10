@@ -4,8 +4,8 @@ Synopsis:            Haskell binding to PulseAudio
 Homepage:            http://favonia.github.com/pulse/
 License:             BSD3
 License-file:        LICENSE
-Author:              Favonia, MnO2
-Maintainer:          favonia@gmail.com, mno2.csie@gmail.com
+Author:              Favonia, MnO2, Lin Jen-Shin (godfat)
+Maintainer:          favonia@gmail.com, mno2.csie@gmail.com, godfat@godfat.org
 Category:            Sound
 
 Build-type:          Simple
