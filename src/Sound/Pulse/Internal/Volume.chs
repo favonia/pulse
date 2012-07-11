@@ -24,6 +24,7 @@ import Foreign.Safe
 #else
 import Foreign
 #endif
+import Foreign.C
 
 import Control.Monad (liftM)
 
