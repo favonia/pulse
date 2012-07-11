@@ -27,123 +27,150 @@ import Foreign
 import Foreign.C
 import Control.Applicative ((<$>), (<*>))
 import Control.Monad (liftM)
+import Data.Word (Word64)
 import Sound.Pulse.Internal.C2HS
+{#import Sound.Pulse.Internal.Def #}
 {#import Sound.Pulse.Internal.Volume #}
 {#import Sound.Pulse.Internal.Context #}
 {#import Sound.Pulse.Internal.Operation #}
 
 #include <pulse/introspect.h>
 
+type MuSecond = Word64
+
 data RawSinkPortInfo
 {#pointer *sink_port_info as RawSinkPortInfoPtr -> RawSinkPortInfo #}
 
-data RawSinkInfo = RawSinkInfo 
+data RawSinkInfo = RawSinkInfo
     { sinkName'RawSinkInfo :: Maybe String
+    , sinkIndex'RawSinkInfo :: Int
     , sinkDesc'RawSinkInfo :: Maybe String
+    , sinkMute'RawSinkInfo :: Bool
+    , sinkLatency'RawSinkInfo :: MuSecond
+    , sinkFlags'RawSinkInfo :: SinkFlags
+    , sinkConfiguredLatency'RawSinkInfo :: MuSecond
+    , sinkBaseVolume'RawSinkInfo :: Volume
+    , sinkState'RawSinkInfo :: SinkState
     }
-   
+
 instance Storable RawSinkInfo where
     sizeOf _ = {#sizeof pa_sink_info #}
     alignment _ = {#alignof pa_sink_info #}
     peek p = RawSinkInfo
         <$> (peekNullableUTF8CString =<< ({#get pa_sink_info->name #} p))
+        <*> (liftM cIntConv ({#get pa_sink_info->index #} p))
         <*> (peekNullableUTF8CString =<< ({#get pa_sink_info->description #} p))
+        <*> (liftM cToBool ({#get pa_sink_info->mute #} p))
+        <*> (liftM cIntConv ({#get pa_sink_info->latency #} p))
+        <*> (liftM cToEnum ({#get pa_sink_info->flags #} p))
+        <*> (liftM cIntConv ({#get pa_sink_info->configured_latency #} p))
+        <*> (liftM cIntConv ({#get pa_sink_info->base_volume #} p))
+        <*> (liftM cToEnum ({#get pa_sink_info->state #} p))
     poke p x = do
         {#set pa_sink_info.name #} p undefined
+        {#set pa_sink_info.index #} p undefined
         {#set pa_sink_info.description #} p undefined
-        
+
 {#pointer *sink_info as RawSinkInfoPtr -> RawSinkInfo #}
 
 type RawSinkInfoCallback a = RawContextPtr -> RawSinkInfoPtr -> CInt -> RawUserData a -> IO ()
 
 
-{#fun context_get_sink_info_by_name as ^ 
-    { id `RawContextPtr', 
-      withUTF8CString* `String', 
-      id `FunPtr (RawSinkInfoCallback a)', 
+{#fun context_get_sink_info_by_name as ^
+    { id `RawContextPtr',
+      withUTF8CString* `String',
+      id `FunPtr (RawSinkInfoCallback a)',
       castMaybeStablePtrToPtr `UserData a'
     } -> `RawOperationPtr' id #}
 
 
 {#fun context_get_sink_info_by_index as ^
-    { id `RawContextPtr', 
+    { id `RawContextPtr',
       `Int',
-      id `FunPtr (RawSinkInfoCallback a)', 
+      id `FunPtr (RawSinkInfoCallback a)',
       castMaybeStablePtrToPtr `UserData a'
     } -> `RawOperationPtr' id #}
 
 
 {#fun context_get_sink_info_list as ^
-    { id `RawContextPtr', 
-      id `FunPtr (RawSinkInfoCallback a)', 
+    { id `RawContextPtr',
+      id `FunPtr (RawSinkInfoCallback a)',
       castMaybeStablePtrToPtr `UserData a'
     } -> `RawOperationPtr' id #}
-    
+
 {#fun context_set_sink_volume_by_index as ^
-    { id `RawContextPtr', 
+    { id `RawContextPtr',
       `Int',
       id `RawCVolumePtr',
       id `FunPtr (RawContextSuccessCallback a)',
       castMaybeStablePtrToPtr `UserData a'
     } -> `RawOperationPtr'  id #}
-    
+
 {#fun context_set_sink_volume_by_name as ^
-    { id `RawContextPtr', 
-      withUTF8CString* `String', 
+    { id `RawContextPtr',
+      withUTF8CString* `String',
       id `RawCVolumePtr',
       id `FunPtr (RawContextSuccessCallback a)',
       castMaybeStablePtrToPtr `UserData a'
     } -> `RawOperationPtr'  id #}
-    
+
 {#fun context_set_sink_mute_by_index as ^
-    { id `RawContextPtr', 
+    { id `RawContextPtr',
       `Int',
       `Int',
       id `FunPtr (RawContextSuccessCallback a)',
       castMaybeStablePtrToPtr `UserData a'
     } -> `RawOperationPtr'  id #}
-    
+
+{#fun context_set_sink_mute_by_name as ^
+    { id `RawContextPtr',
+      withUTF8CString* `String',
+      `Int',
+      id `FunPtr (RawContextSuccessCallback a)',
+      castMaybeStablePtrToPtr `UserData a'
+    } -> `RawOperationPtr'  id #}
+
 {#fun context_suspend_sink_by_name as ^
-    { id `RawContextPtr', 
-      withUTF8CString* `String', 
+    { id `RawContextPtr',
+      withUTF8CString* `String',
       `Int',
       id `FunPtr (RawContextSuccessCallback a)',
       castMaybeStablePtrToPtr `UserData a'
     } -> `RawOperationPtr'  id #}
-    
+
 {#fun context_suspend_sink_by_index as ^
-    { id `RawContextPtr', 
+    { id `RawContextPtr',
       `Int',
       `Int',
       id `FunPtr (RawContextSuccessCallback a)',
       castMaybeStablePtrToPtr `UserData a'
     } -> `RawOperationPtr'  id #}
-    
+
 {#fun context_set_sink_port_by_index as ^
-    { id `RawContextPtr', 
+    { id `RawContextPtr',
       `Int',
-      withUTF8CString* `String', 
+      withUTF8CString* `String',
       id `FunPtr (RawContextSuccessCallback a)',
       castMaybeStablePtrToPtr `UserData a'
     } -> `RawOperationPtr'  id #}
-    
+
 {#fun context_set_sink_port_by_name as ^
-    { id `RawContextPtr', 
-      withUTF8CString* `String', 
-      withUTF8CString* `String', 
+    { id `RawContextPtr',
+      withUTF8CString* `String',
+      withUTF8CString* `String',
       id `FunPtr (RawContextSuccessCallback a)',
       castMaybeStablePtrToPtr `UserData a'
     } -> `RawOperationPtr'  id #}
-    
+
 
 data RawSourcePortInfo
 {#pointer *source_port_info as RawSourcePortInfoPtr -> RawSourcePortInfo #}
 
-data RawSourceInfo = RawSourceInfo 
+data RawSourceInfo = RawSourceInfo
     { sourceName'RawSourceInfo :: Maybe String
     , sourceDesc'RawSourceInfo :: Maybe String
     }
-   
+
 instance Storable RawSourceInfo where
     sizeOf _ = {#sizeof pa_source_info #}
     alignment _ = {#alignof pa_source_info #}
@@ -158,86 +185,94 @@ instance Storable RawSourceInfo where
 
 type RawSourceInfoCallback a = RawContextPtr -> RawSourceInfoPtr -> CInt -> RawUserData a -> IO ()
 
-{#fun context_get_source_info_by_name as ^ 
-    { id `RawContextPtr', 
-      withUTF8CString* `String', 
-      id `FunPtr (RawSourceInfoCallback a)', 
+{#fun context_get_source_info_by_name as ^
+    { id `RawContextPtr',
+      withUTF8CString* `String',
+      id `FunPtr (RawSourceInfoCallback a)',
       castMaybeStablePtrToPtr `UserData a'
     } -> `RawOperationPtr' id #}
 
 
 {#fun context_get_source_info_by_index as ^
-    { id `RawContextPtr', 
+    { id `RawContextPtr',
       `Int',
-      id `FunPtr (RawSourceInfoCallback a)', 
+      id `FunPtr (RawSourceInfoCallback a)',
       castMaybeStablePtrToPtr `UserData a'
     } -> `RawOperationPtr' id #}
-    
+
 {#fun context_get_source_info_list as ^
-    { id `RawContextPtr', 
-      id `FunPtr (RawSourceInfoCallback a)', 
+    { id `RawContextPtr',
+      id `FunPtr (RawSourceInfoCallback a)',
       castMaybeStablePtrToPtr `UserData a'
     } -> `RawOperationPtr' id #}
-    
+
 {#fun context_set_source_volume_by_index as ^
-    { id `RawContextPtr', 
+    { id `RawContextPtr',
       `Int',
       id `RawCVolumePtr',
       id `FunPtr (RawContextSuccessCallback a)',
       castMaybeStablePtrToPtr `UserData a'
     } -> `RawOperationPtr'  id #}
-    
+
 {#fun context_set_source_volume_by_name as ^
-    { id `RawContextPtr', 
-      withUTF8CString* `String', 
+    { id `RawContextPtr',
+      withUTF8CString* `String',
       id `RawCVolumePtr',
       id `FunPtr (RawContextSuccessCallback a)',
       castMaybeStablePtrToPtr `UserData a'
     } -> `RawOperationPtr'  id #}
-    
+
 {#fun context_set_source_mute_by_index as ^
-    { id `RawContextPtr', 
+    { id `RawContextPtr',
       `Int',
       `Int',
       id `FunPtr (RawContextSuccessCallback a)',
       castMaybeStablePtrToPtr `UserData a'
     } -> `RawOperationPtr'  id #}
-    
+
+{#fun context_set_source_mute_by_name as ^
+    { id `RawContextPtr',
+      withUTF8CString* `String',
+      `Int',
+      id `FunPtr (RawContextSuccessCallback a)',
+      castMaybeStablePtrToPtr `UserData a'
+    } -> `RawOperationPtr'  id #}
+
 {#fun context_suspend_source_by_name as ^
-    { id `RawContextPtr', 
-      withUTF8CString* `String', 
+    { id `RawContextPtr',
+      withUTF8CString* `String',
       `Int',
       id `FunPtr (RawContextSuccessCallback a)',
       castMaybeStablePtrToPtr `UserData a'
     } -> `RawOperationPtr'  id #}
-    
+
 {#fun context_suspend_source_by_index as ^
-    { id `RawContextPtr', 
+    { id `RawContextPtr',
       `Int',
       `Int',
       id `FunPtr (RawContextSuccessCallback a)',
       castMaybeStablePtrToPtr `UserData a'
     } -> `RawOperationPtr'  id #}
-    
+
 {#fun context_set_source_port_by_index as ^
-    { id `RawContextPtr', 
+    { id `RawContextPtr',
       `Int',
-      withUTF8CString* `String', 
+      withUTF8CString* `String',
       id `FunPtr (RawContextSuccessCallback a)',
       castMaybeStablePtrToPtr `UserData a'
     } -> `RawOperationPtr'  id #}
-    
+
 {#fun context_set_source_port_by_name as ^
-    { id `RawContextPtr', 
-      withUTF8CString* `String', 
-      withUTF8CString* `String', 
+    { id `RawContextPtr',
+      withUTF8CString* `String',
+      withUTF8CString* `String',
       id `FunPtr (RawContextSuccessCallback a)',
       castMaybeStablePtrToPtr `UserData a'
     } -> `RawOperationPtr'  id #}
-    
 
 
-data RawServerInfo = RawServerInfo 
+
+data RawServerInfo = RawServerInfo
     { userName'RawServerInfo :: Maybe String
     , hostName'RawServerInfo :: Maybe String
     , serverVersion'RawServerInfo :: Maybe String
@@ -246,7 +281,7 @@ data RawServerInfo = RawServerInfo
     , defaultSourceName'RawServerInfo :: Maybe String
     }
 {#pointer *server_info as RawServerInfoPtr -> RawServerInfo #}
-   
+
 instance Storable RawServerInfo where
     sizeOf _ = {#sizeof pa_server_info #}
     alignment _ = {#alignof pa_server_info #}
@@ -269,17 +304,17 @@ type RawServerInfoCallback a = RawContextPtr -> RawServerInfoPtr -> RawUserData 
 
 
 {#fun context_get_server_info as ^
-    { id `RawContextPtr', 
+    { id `RawContextPtr',
       id `FunPtr (RawServerInfoCallback a)',
       castMaybeStablePtrToPtr `UserData a'
     } -> `RawOperationPtr'  id #}
-    
 
 
-data RawModuleInfo = RawModuleInfo 
+
+data RawModuleInfo = RawModuleInfo
     { moduleName'RawModuleInfo :: Maybe String
     }
-   
+
 instance Storable RawModuleInfo where
     sizeOf _ = {#sizeof pa_module_info #}
     alignment _ = {#alignof pa_module_info #}
@@ -287,7 +322,7 @@ instance Storable RawModuleInfo where
         <$> (peekNullableUTF8CString =<< ({#get pa_module_info->name #} p))
     poke p x = do
         {#set pa_module_info.name #} p undefined
-        
+
 {#pointer *module_info as RawModuleInfoPtr -> RawModuleInfo #}
 
 
@@ -295,14 +330,14 @@ type RawModuleInfoCallback a = RawContextPtr -> RawModuleInfoPtr -> CInt -> RawU
 
 
 {#fun context_get_module_info as ^
-    { id `RawContextPtr', 
+    { id `RawContextPtr',
       `Int',
       id `FunPtr (RawModuleInfoCallback a)',
       castMaybeStablePtrToPtr `UserData a'
     } -> `RawOperationPtr'  id #}
 
 {#fun context_get_module_info_list as ^
-    { id `RawContextPtr', 
+    { id `RawContextPtr',
       id `FunPtr (RawModuleInfoCallback a)',
       castMaybeStablePtrToPtr `UserData a'
     } -> `RawOperationPtr'  id #}
@@ -312,27 +347,27 @@ type RawContextIndexCallback a = RawContextPtr -> CUInt -> RawUserData a -> IO (
 
 
 {#fun context_load_module as ^
-    { id `RawContextPtr', 
-      withUTF8CString* `String', 
-      withUTF8CString* `String', 
+    { id `RawContextPtr',
+      withUTF8CString* `String',
+      withUTF8CString* `String',
       id `FunPtr (RawContextIndexCallback a)',
       castMaybeStablePtrToPtr `UserData a'
     } -> `RawOperationPtr'  id #}
-    
+
 
 {#fun context_unload_module as ^
-    { id `RawContextPtr', 
+    { id `RawContextPtr',
       `Int',
       id `FunPtr (RawContextSuccessCallback a)',
       castMaybeStablePtrToPtr `UserData a'
     } -> `RawOperationPtr'  id #}
-    
 
-data RawClientInfo = RawClientInfo 
+
+data RawClientInfo = RawClientInfo
     { clientName'RawClientInfo :: Maybe String
     , driverName'RawClientInfo :: Maybe String
     }
-   
+
 instance Storable RawClientInfo where
     sizeOf _ = {#sizeof pa_client_info #}
     alignment _ = {#alignof pa_client_info #}
@@ -349,7 +384,7 @@ type RawClientInfoCallback a = RawContextPtr -> RawClientInfoPtr -> CInt -> RawU
 
 
 {#fun context_get_client_info as ^
-    { id `RawContextPtr', 
+    { id `RawContextPtr',
       `Int',
       id `FunPtr (RawClientInfoCallback a)',
       castMaybeStablePtrToPtr `UserData a'
@@ -357,18 +392,18 @@ type RawClientInfoCallback a = RawContextPtr -> RawClientInfoPtr -> CInt -> RawU
 
 
 {#fun context_get_client_info_list as ^
-    { id `RawContextPtr', 
+    { id `RawContextPtr',
       id `FunPtr (RawClientInfoCallback a)',
       castMaybeStablePtrToPtr `UserData a'
     } -> `RawOperationPtr'  id #}
-    
+
 {#fun context_kill_client as ^
-    { id `RawContextPtr', 
+    { id `RawContextPtr',
       `Int',
       id `FunPtr (RawContextSuccessCallback a)',
       castMaybeStablePtrToPtr `UserData a'
     } -> `RawOperationPtr'  id #}
-    
+
 
 data RawCardProfileInfo
 {#pointer *card_profile_info as RawCardProfileInfoPtr -> RawCardProfileInfo #}
@@ -378,11 +413,11 @@ data RawCardPortInfo
 {#pointer *card_port_info as RawCardPortInfoPtr -> RawCardPortInfo #}
 #endif
 
-data RawCardInfo = RawCardInfo 
+data RawCardInfo = RawCardInfo
     { cardName'RawCardInfo :: Maybe String
     , driverName'RawCardInfo :: Maybe String
     }
-   
+
 instance Storable RawCardInfo where
     sizeOf _ = {#sizeof pa_card_info #}
     alignment _ = {#alignof pa_card_info #}
@@ -400,49 +435,49 @@ type RawCardInfoCallback a = RawContextPtr -> RawCardInfoPtr -> CInt -> RawUserD
 
 
 {#fun context_get_card_info_by_index as ^
-    { id `RawContextPtr', 
+    { id `RawContextPtr',
       `Int',
       id `FunPtr (RawCardInfoCallback a)',
       castMaybeStablePtrToPtr `UserData a'
     } -> `RawOperationPtr'  id #}
-    
+
 {#fun context_get_card_info_by_name as ^
-    { id `RawContextPtr', 
-      withUTF8CString* `String', 
+    { id `RawContextPtr',
+      withUTF8CString* `String',
       id `FunPtr (RawCardInfoCallback a)',
       castMaybeStablePtrToPtr `UserData a'
     } -> `RawOperationPtr'  id #}
-    
+
 {#fun context_get_card_info_list as ^
-    { id `RawContextPtr', 
+    { id `RawContextPtr',
       id `FunPtr (RawCardInfoCallback a)',
       castMaybeStablePtrToPtr `UserData a'
     } -> `RawOperationPtr'  id #}
-    
+
 
 {#fun context_set_card_profile_by_index as ^
-    { id `RawContextPtr', 
+    { id `RawContextPtr',
       `Int',
-      withUTF8CString* `String', 
+      withUTF8CString* `String',
       id `FunPtr (RawContextSuccessCallback a)',
       castMaybeStablePtrToPtr `UserData a'
     } -> `RawOperationPtr'  id #}
-    
+
 
 {#fun context_set_card_profile_by_name as ^
-    { id `RawContextPtr', 
-      withUTF8CString* `String', 
-      withUTF8CString* `String', 
+    { id `RawContextPtr',
+      withUTF8CString* `String',
+      withUTF8CString* `String',
       id `FunPtr (RawContextSuccessCallback a)',
       castMaybeStablePtrToPtr `UserData a'
     } -> `RawOperationPtr'  id #}
-    
 
-data RawSinkInputInfo = RawSinkInputInfo 
+
+data RawSinkInputInfo = RawSinkInputInfo
     { sinkInputName'RawSinkInputInfo :: Maybe String
     , driverName'RawSinkInputInfo :: Maybe String
     }
-   
+
 instance Storable RawSinkInputInfo where
     sizeOf _ = {#sizeof pa_sink_input_info #}
     alignment _ = {#alignof pa_sink_input_info #}
@@ -459,42 +494,57 @@ type RawSinkInputInfoCallback a = RawContextPtr -> RawSinkInputInfoPtr -> CInt -
 
 
 {#fun context_get_sink_input_info as ^
-    { id `RawContextPtr', 
+    { id `RawContextPtr',
       `Int',
       id `FunPtr (RawSinkInputInfoCallback a)',
       castMaybeStablePtrToPtr `UserData a'
     } -> `RawOperationPtr'  id #}
-    
+
 {#fun context_get_sink_input_info_list as ^
-    { id `RawContextPtr', 
+    { id `RawContextPtr',
       id `FunPtr (RawSinkInputInfoCallback a)',
       castMaybeStablePtrToPtr `UserData a'
     } -> `RawOperationPtr'  id #}
-    
+
 
 {#fun context_move_sink_input_by_index as ^
-    { id `RawContextPtr', 
+    { id `RawContextPtr',
       `Int',
       `Int',
       id `FunPtr (RawContextSuccessCallback a)',
       castMaybeStablePtrToPtr `UserData a'
     } -> `RawOperationPtr'  id #}
-    
+
+{#fun context_set_sink_input_volume as ^
+    { id `RawContextPtr',
+      `Int',
+      id `RawCVolumePtr',
+      id `FunPtr (RawContextSuccessCallback a)',
+      castMaybeStablePtrToPtr `UserData a'
+    } -> `RawOperationPtr'  id #}
+
+{#fun context_set_sink_input_mute as ^
+    { id `RawContextPtr',
+      `Int',
+      `Int',
+      id `FunPtr (RawContextSuccessCallback a)',
+      castMaybeStablePtrToPtr `UserData a'
+    } -> `RawOperationPtr'  id #}
 
 {#fun context_kill_sink_input as ^
-    { id `RawContextPtr', 
+    { id `RawContextPtr',
       `Int',
       id `FunPtr (RawContextSuccessCallback a)',
       castMaybeStablePtrToPtr `UserData a'
     } -> `RawOperationPtr'  id #}
-    
 
 
-data RawSourceOutputInfo = RawSourceOutputInfo 
+
+data RawSourceOutputInfo = RawSourceOutputInfo
     { sourceOutputName'RawSourceOutputInfo :: Maybe String
     , driverName'RawSourceOutputInfo :: Maybe String
     }
-   
+
 instance Storable RawSourceOutputInfo where
     sizeOf _ = {#sizeof pa_source_output_info #}
     alignment _ = {#alignof pa_source_output_info #}
@@ -512,64 +562,64 @@ type RawSourceOutputInfoCallback a = RawContextPtr -> RawSourceOutputInfoPtr -> 
 
 
 {#fun context_get_source_output_info as ^
-    { id `RawContextPtr', 
+    { id `RawContextPtr',
       `Int',
       id `FunPtr (RawSourceOutputInfoCallback a)',
       castMaybeStablePtrToPtr `UserData a'
     } -> `RawOperationPtr'  id #}
-    
+
 {#fun context_get_source_output_info_list as ^
-    { id `RawContextPtr', 
+    { id `RawContextPtr',
       id `FunPtr (RawSourceOutputInfoCallback a)',
       castMaybeStablePtrToPtr `UserData a'
     } -> `RawOperationPtr'  id #}
-    
+
 {#fun context_move_source_output_by_name as ^
-    { id `RawContextPtr', 
+    { id `RawContextPtr',
       `Int',
-      withUTF8CString* `String', 
+      withUTF8CString* `String',
       id `FunPtr (RawContextSuccessCallback a)',
       castMaybeStablePtrToPtr `UserData a'
     } -> `RawOperationPtr'  id #}
-    
+
 {#fun context_move_source_output_by_index as ^
-    { id `RawContextPtr', 
+    { id `RawContextPtr',
       `Int',
       `Int',
       id `FunPtr (RawContextSuccessCallback a)',
       castMaybeStablePtrToPtr `UserData a'
     } -> `RawOperationPtr'  id #}
-    
+
 {#fun context_set_source_output_volume as ^
-    { id `RawContextPtr', 
+    { id `RawContextPtr',
       `Int',
       id `RawCVolumePtr',
       id `FunPtr (RawContextSuccessCallback a)',
       castMaybeStablePtrToPtr `UserData a'
     } -> `RawOperationPtr'  id #}
-    
+
 {#fun context_set_source_output_mute as ^
-    { id `RawContextPtr', 
+    { id `RawContextPtr',
       `Int',
       `Int',
       id `FunPtr (RawContextSuccessCallback a)',
       castMaybeStablePtrToPtr `UserData a'
     } -> `RawOperationPtr'  id #}
-    
+
 {#fun context_kill_source_output as ^
-    { id `RawContextPtr', 
+    { id `RawContextPtr',
       `Int',
       id `FunPtr (RawContextSuccessCallback a)',
       castMaybeStablePtrToPtr `UserData a'
     } -> `RawOperationPtr'  id #}
-    
 
 
-data RawStatInfo = RawStatInfo 
+
+data RawStatInfo = RawStatInfo
     { memblockTotal'RawStatInfo :: Int
     , memblockTotalSize'RawStatInfo :: Int
     }
-   
+
 instance Storable RawStatInfo where
     sizeOf _ = {#sizeof pa_stat_info #}
     alignment _ = {#alignof pa_stat_info #}
@@ -585,17 +635,17 @@ type RawStatInfoCallback a = RawContextPtr -> RawStatInfoPtr -> RawUserData a ->
 
 
 {#fun context_stat as ^
-    { id `RawContextPtr', 
+    { id `RawContextPtr',
       id `FunPtr (RawStatInfoCallback a)',
       castMaybeStablePtrToPtr `UserData a'
     } -> `RawOperationPtr'  id #}
-    
 
-data RawSampleInfo = RawSampleInfo 
+
+data RawSampleInfo = RawSampleInfo
     { sampleName'RawSampleInfo :: Maybe String
     , fileName'RawSampleInfo :: Maybe String
     }
-   
+
 instance Storable RawSampleInfo where
     sizeOf _ = {#sizeof pa_sample_info #}
     alignment _ = {#alignof pa_sample_info #}
@@ -611,22 +661,22 @@ type RawSampleInfoCallback a = RawContextPtr -> RawSampleInfoPtr -> CInt -> RawU
 
 
 {#fun context_get_sample_info_by_name as ^
-    { id `RawContextPtr', 
-      withUTF8CString* `String', 
+    { id `RawContextPtr',
+      withUTF8CString* `String',
       id `FunPtr (RawSampleInfoCallback a)',
       castMaybeStablePtrToPtr `UserData a'
     } -> `RawOperationPtr'  id #}
-    
+
 {#fun context_get_sample_info_by_index as ^
-    { id `RawContextPtr', 
+    { id `RawContextPtr',
       `Int',
       id `FunPtr (RawSampleInfoCallback a)',
       castMaybeStablePtrToPtr `UserData a'
     } -> `RawOperationPtr'  id #}
-    
+
 {#fun context_get_sample_info_list as ^
-    { id `RawContextPtr', 
+    { id `RawContextPtr',
       id `FunPtr (RawSampleInfoCallback a)',
       castMaybeStablePtrToPtr `UserData a'
     } -> `RawOperationPtr'  id #}
-    
+

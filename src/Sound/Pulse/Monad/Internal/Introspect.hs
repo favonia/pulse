@@ -90,8 +90,23 @@ foreign import ccall "&_pulse_private_contextSuccessCallback"
     wrappedContextSuccessCallback :: FunPtr (RawContextSuccessCallback a)
 
 
-setSinkVolumeByName :: Context -> String -> RawCVolume -> IO Bool
-setSinkVolumeByName ctx name cvol = mask_ $ bracket
+type VolumeSetterByIndex a = RawContextPtr -> Int -> RawCVolumePtr -> FunPtr (RawContextSuccessCallback a) -> UserData a -> IO (RawOperationPtr)
+type VolumeSetterByName a = RawContextPtr -> String -> RawCVolumePtr -> FunPtr (RawContextSuccessCallback a) -> UserData a -> IO (RawOperationPtr)
+
+setSinkVolume :: Context -> Either String Int -> RawCVolume -> IO Bool
+setSinkVolume = setVolumeHelper contextSetSinkVolumeByName contextSetSinkVolumeByIndex
+
+setSourceVolume :: Context -> Either String Int -> RawCVolume -> IO Bool
+setSourceVolume = setVolumeHelper contextSetSourceVolumeByName contextSetSourceVolumeByIndex
+
+setSinkInputVolume :: Context -> Int -> RawCVolume -> IO Bool
+setSinkInputVolume ctx idx cvol = setVolumeHelper undefined contextSetSinkInputVolume ctx (Right idx) cvol
+
+setSourceOutputVolume :: Context -> Int -> RawCVolume -> IO Bool
+setSourceOutputVolume ctx idx cvol = setVolumeHelper undefined contextSetSourceOutputVolume ctx (Right idx) cvol
+
+setVolumeHelper :: VolumeSetterByName (TVar Bool) -> VolumeSetterByIndex (TVar Bool) -> Context -> Either String Int -> RawCVolume -> IO Bool
+setVolumeHelper setterByName setterByIndex ctx identifier cvol = mask_ $ bracket
     (do
         mon <- newTVarIO False
         monPtr <- newStablePtr mon
@@ -100,7 +115,42 @@ setSinkVolumeByName ctx name cvol = mask_ $ bracket
     $ \(mon, monPtr) -> do
         let rawCtxPtr = ctxRaw ctx
             rawCVolPtr = volRaw cvol
-        autoWait ctx =<< contextSetSinkVolumeByName rawCtxPtr name rawCVolPtr wrappedContextSuccessCallback (Just monPtr)
+        case identifier of
+            Left name -> autoWait ctx =<< setterByName rawCtxPtr name rawCVolPtr wrappedContextSuccessCallback (Just monPtr)
+            Right idx -> autoWait ctx =<< setterByIndex rawCtxPtr idx rawCVolPtr wrappedContextSuccessCallback (Just monPtr)
+        isSuccessful <- readTVarIO mon
+        return isSuccessful
+
+
+type MuteSetterByIndex a = RawContextPtr -> Int -> Int -> FunPtr (RawContextSuccessCallback a) -> UserData a -> IO (RawOperationPtr)
+type MuteSetterByName a = RawContextPtr -> String -> Int -> FunPtr (RawContextSuccessCallback a) -> UserData a -> IO (RawOperationPtr)
+
+
+setSinkMute :: Context -> Either String Int -> Bool -> IO Bool
+setSinkMute = setMuteHelper contextSetSinkMuteByName contextSetSinkMuteByIndex
+
+setSourceMute :: Context -> Either String Int -> Bool -> IO Bool
+setSourceMute = setMuteHelper contextSetSourceMuteByName contextSetSourceMuteByIndex
+
+setSinkInputMute :: Context -> Int -> Bool -> IO Bool
+setSinkInputMute ctx idx mute = setMuteHelper undefined contextSetSinkInputMute ctx (Right idx) mute
+
+setSourceOutputMute :: Context -> Int -> Bool -> IO Bool
+setSourceOutputMute ctx idx mute = setMuteHelper undefined contextSetSourceOutputMute ctx (Right idx) mute
+
+setMuteHelper :: MuteSetterByName (TVar Bool) -> MuteSetterByIndex (TVar Bool) -> Context -> Either String Int -> Bool -> IO Bool
+setMuteHelper setterByName setterByIndex ctx identifier mute = mask_ $ bracket
+    (do
+        mon <- newTVarIO False
+        monPtr <- newStablePtr mon
+        return (mon, monPtr))
+    (freeStablePtr . snd)
+    $ \(mon, monPtr) -> do
+        let rawCtxPtr = ctxRaw ctx
+            muteInt = fromBool mute
+        case identifier of
+            Left name -> autoWait ctx =<< setterByName rawCtxPtr name muteInt wrappedContextSuccessCallback (Just monPtr)
+            Right idx -> autoWait ctx =<< setterByIndex rawCtxPtr idx muteInt wrappedContextSuccessCallback (Just monPtr)
         isSuccessful <- readTVarIO mon
         return isSuccessful
 
