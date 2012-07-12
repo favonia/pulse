@@ -6,6 +6,10 @@ BSD-3. You should have received a copy of the BSD-3 License along with
 Pulse. If not, see <http://www.opensource.org/licenses/BSD-3-clause>.
 -}
 
+{-# LANGUAGE CPP #-}
+#if __GLASGOW_HASKELL__ >= 702
+{-# LANGUAGE Safe #-}
+#endif
 {-# LANGUAGE ForeignFunctionInterface, EmptyDataDecls #-}
 
 {#context prefix = "pa"#}
@@ -15,7 +19,14 @@ This module provides the bindings to @channelmap.h@.
 -}
 module Sound.Pulse.Internal.ChannelMap where
 
+#if __GLASGOW_HASKELL__ >= 702
+import Foreign.Safe
+#else
 import Foreign
+#endif
+import Foreign.C
+import Control.Monad (liftM)
+import Sound.Pulse.Internal.C2HS
 
 #include <pulse/channelmap.h>
 
@@ -24,4 +35,16 @@ import Foreign
 {#enum channel_map_def as ChannelMapDef {underscoreToCase} deriving (Show, Eq) #}
 
 data ChannelMap = ChannelMap [ChannelPosition]
+
+instance Storable ChannelMap where
+    sizeOf _ = {#sizeof pa_channel_map #}
+    alignment _ = {#alignof pa_channel_map #}
+    peek p = do 
+        channelNum <- liftM cIntConv ({#get pa_channel_map->channels #} p)
+        mapPtr <- ({#get pa_channel_map->map #} p) 
+        posList <- peekArray channelNum mapPtr
+        return $ ChannelMap []
+
+    poke p x = return ()
+
 {#pointer *channel_map as ChannelMapPtr -> ChannelMap #}

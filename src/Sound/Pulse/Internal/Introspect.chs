@@ -33,18 +33,37 @@ import Sound.Pulse.Internal.C2HS
 {#import Sound.Pulse.Internal.Volume #}
 {#import Sound.Pulse.Internal.Context #}
 {#import Sound.Pulse.Internal.Operation #}
+{#import Sound.Pulse.Internal.Format #}
+{#import Sound.Pulse.Internal.ChannelMap #}
 
 #include <pulse/introspect.h>
 
 type MuSecond = Word64
 
-data RawSinkPortInfo
+data RawSinkPortInfo = RawSinkPortInfo
+    { name'RawSinkPortInfo :: Maybe String
+    , description'RawSinkPortInfo :: Maybe String
+    , priority'RawSinkPortInfo :: Int
+    }
+
+instance Storable RawSinkPortInfo where
+    sizeOf _ = {#sizeof pa_sink_port_info #}
+    alignment _ = {#alignof pa_sink_port_info #}
+    peek p = RawSinkPortInfo
+        <$> (peekNullableUTF8CString =<< ({#get pa_sink_port_info->name #} p))
+        <*> (peekNullableUTF8CString =<< ({#get pa_sink_port_info->description #} p))
+        <*> (liftM cIntConv ({#get pa_sink_port_info->priority #} p))
+    poke p x = do
+        {#set pa_sink_port_info.name #} p undefined
+        {#set pa_sink_port_info.description #} p undefined
+        {#set pa_sink_port_info.priority #} p undefined
 {#pointer *sink_port_info as RawSinkPortInfoPtr -> RawSinkPortInfo #}
 
 data RawSinkInfo = RawSinkInfo
     { sinkName'RawSinkInfo :: Maybe String
     , sinkIndex'RawSinkInfo :: Int
     , sinkDesc'RawSinkInfo :: Maybe String
+  {-  , sinkChannelMap'RawSinkInfo :: ChannelMap -}
     , sinkMute'RawSinkInfo :: Bool
     , sinkLatency'RawSinkInfo :: MuSecond
     , sinkFlags'RawSinkInfo :: SinkFlags
@@ -60,6 +79,7 @@ instance Storable RawSinkInfo where
         <$> (peekNullableUTF8CString =<< ({#get pa_sink_info->name #} p))
         <*> (liftM cIntConv ({#get pa_sink_info->index #} p))
         <*> (peekNullableUTF8CString =<< ({#get pa_sink_info->description #} p))
+        {-<*> (peekNullableUTF8CString =<< ({#get pa_sink_info->channel_map #} p)) -}
         <*> (liftM cToBool ({#get pa_sink_info->mute #} p))
         <*> (liftM cIntConv ({#get pa_sink_info->latency #} p))
         <*> (liftM cToEnum ({#get pa_sink_info->flags #} p))
@@ -163,7 +183,24 @@ type RawSinkInfoCallback a = RawContextPtr -> RawSinkInfoPtr -> CInt -> RawUserD
     } -> `RawOperationPtr'  id #}
 
 
-data RawSourcePortInfo
+data RawSourcePortInfo = RawSourcePortInfo
+    { name'RawSourcePortInfo :: Maybe String
+    , description'RawSourcePortInfo :: Maybe String
+    , priority'RawSourcePortInfo :: Int
+    }
+
+instance Storable RawSourcePortInfo where
+    sizeOf _ = {#sizeof pa_source_port_info #}
+    alignment _ = {#alignof pa_source_port_info #}
+    peek p = RawSourcePortInfo
+        <$> (peekNullableUTF8CString =<< ({#get pa_source_port_info->name #} p))
+        <*> (peekNullableUTF8CString =<< ({#get pa_source_port_info->description #} p))
+        <*> (liftM cIntConv ({#get pa_source_port_info->priority #} p))
+    poke p x = do
+        {#set pa_source_port_info.name #} p undefined
+        {#set pa_source_port_info.description #} p undefined
+        {#set pa_source_port_info.priority #} p undefined
+
 {#pointer *source_port_info as RawSourcePortInfoPtr -> RawSourcePortInfo #}
 
 data RawSourceInfo = RawSourceInfo
@@ -506,6 +543,13 @@ type RawSinkInputInfoCallback a = RawContextPtr -> RawSinkInputInfoPtr -> CInt -
       castMaybeStablePtrToPtr `UserData a'
     } -> `RawOperationPtr'  id #}
 
+{#fun context_move_sink_input_by_name as ^
+    { id `RawContextPtr',
+      `Int',
+      withUTF8CString* `String',
+      id `FunPtr (RawContextSuccessCallback a)',
+      castMaybeStablePtrToPtr `UserData a'
+    } -> `RawOperationPtr'  id #}
 
 {#fun context_move_sink_input_by_index as ^
     { id `RawContextPtr',

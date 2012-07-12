@@ -122,24 +122,31 @@ setVolumeHelper setterByName setterByIndex ctx identifier cvol = mask_ $ bracket
         return isSuccessful
 
 
-type MuteSetterByIndex a = RawContextPtr -> Int -> Int -> FunPtr (RawContextSuccessCallback a) -> UserData a -> IO (RawOperationPtr)
-type MuteSetterByName a = RawContextPtr -> String -> Int -> FunPtr (RawContextSuccessCallback a) -> UserData a -> IO (RawOperationPtr)
+type PropertySetterByIndex a = RawContextPtr -> Int -> Int -> FunPtr (RawContextSuccessCallback a) -> UserData a -> IO (RawOperationPtr)
+type PropertySetterByName a = RawContextPtr -> String -> Int -> FunPtr (RawContextSuccessCallback a) -> UserData a -> IO (RawOperationPtr)
 
 
 setSinkMute :: Context -> Either String Int -> Bool -> IO Bool
-setSinkMute = setMuteHelper contextSetSinkMuteByName contextSetSinkMuteByIndex
+setSinkMute = setPropertyHelper contextSetSinkMuteByName contextSetSinkMuteByIndex
 
 setSourceMute :: Context -> Either String Int -> Bool -> IO Bool
-setSourceMute = setMuteHelper contextSetSourceMuteByName contextSetSourceMuteByIndex
+setSourceMute = setPropertyHelper contextSetSourceMuteByName contextSetSourceMuteByIndex
 
 setSinkInputMute :: Context -> Int -> Bool -> IO Bool
-setSinkInputMute ctx idx mute = setMuteHelper undefined contextSetSinkInputMute ctx (Right idx) mute
+setSinkInputMute ctx idx mute = setPropertyHelper undefined contextSetSinkInputMute ctx (Right idx) mute
 
 setSourceOutputMute :: Context -> Int -> Bool -> IO Bool
-setSourceOutputMute ctx idx mute = setMuteHelper undefined contextSetSourceOutputMute ctx (Right idx) mute
+setSourceOutputMute ctx idx mute = setPropertyHelper undefined contextSetSourceOutputMute ctx (Right idx) mute
 
-setMuteHelper :: MuteSetterByName (TVar Bool) -> MuteSetterByIndex (TVar Bool) -> Context -> Either String Int -> Bool -> IO Bool
-setMuteHelper setterByName setterByIndex ctx identifier mute = mask_ $ bracket
+setSinkSuspend :: Context -> Either String Int -> Bool -> IO Bool
+setSinkSuspend = setPropertyHelper contextSuspendSinkByName contextSuspendSinkByIndex
+
+setSourceSuspend :: Context -> Either String Int -> Bool -> IO Bool
+setSourceSuspend = setPropertyHelper contextSuspendSourceByName contextSuspendSourceByIndex
+
+
+setPropertyHelper :: PropertySetterByName (TVar Bool) -> PropertySetterByIndex (TVar Bool) -> Context -> Either String Int -> Bool -> IO Bool
+setPropertyHelper setterByName setterByIndex ctx identifier mute = mask_ $ bracket
     (do
         mon <- newTVarIO False
         monPtr <- newStablePtr mon
@@ -154,6 +161,55 @@ setMuteHelper setterByName setterByIndex ctx identifier mute = mask_ $ bracket
         isSuccessful <- readTVarIO mon
         return isSuccessful
 
+
+type MoveByIndex a = RawContextPtr -> Int -> Int -> FunPtr (RawContextSuccessCallback a) -> UserData a -> IO (RawOperationPtr)
+type MoveByName a = RawContextPtr -> Int -> String -> FunPtr (RawContextSuccessCallback a) -> UserData a -> IO (RawOperationPtr)
+
+moveSinkInput :: Context -> Int -> Either String Int -> IO Bool
+moveSinkInput = moveHelper contextMoveSinkInputByName contextMoveSinkInputByIndex
+
+moveSourceOutput :: Context -> Int -> Either String Int -> IO Bool
+moveSourceOutput = moveHelper contextMoveSourceOutputByName contextMoveSourceOutputByIndex
+
+moveHelper :: MoveByName (TVar Bool) -> MoveByIndex (TVar Bool) -> Context -> Int -> Either String Int -> IO Bool
+moveHelper moveByName moveByIndex ctx target identifier  = mask_ $ bracket
+    (do
+        mon <- newTVarIO False
+        monPtr <- newStablePtr mon
+        return (mon, monPtr))
+    (freeStablePtr . snd)
+    $ \(mon, monPtr) -> do
+        let rawCtxPtr = ctxRaw ctx
+        case identifier of
+            Left name -> autoWait ctx =<< moveByName rawCtxPtr target name wrappedContextSuccessCallback (Just monPtr)
+            Right idx -> autoWait ctx =<< moveByIndex rawCtxPtr target idx wrappedContextSuccessCallback (Just monPtr)
+        isSuccessful <- readTVarIO mon
+        return isSuccessful
+
+
+type KillerByIndex a = RawContextPtr -> Int -> FunPtr (RawContextSuccessCallback a) -> UserData a -> IO (RawOperationPtr)
+
+killSinkInput :: Context -> Int -> IO Bool
+killSinkInput = killHelper contextKillSinkInput
+
+killSourceOutput :: Context -> Int -> IO Bool
+killSourceOutput = killHelper contextKillSourceOutput
+
+killClient :: Context -> Int -> IO Bool
+killClient = killHelper contextKillClient
+
+killHelper :: KillerByIndex (TVar Bool) -> Context -> Int -> IO Bool
+killHelper setterByIndex ctx idx = mask_ $ bracket
+    (do
+        mon <- newTVarIO False
+        monPtr <- newStablePtr mon
+        return (mon, monPtr))
+    (freeStablePtr . snd)
+    $ \(mon, monPtr) -> do
+        let rawCtxPtr = ctxRaw ctx
+        autoWait ctx =<< setterByIndex rawCtxPtr idx wrappedContextSuccessCallback (Just monPtr)
+        isSuccessful <- readTVarIO mon
+        return isSuccessful
 
 -- | Callback for getting source info
 sourceInfoCallback :: RawSourceInfoCallback a
