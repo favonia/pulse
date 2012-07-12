@@ -50,6 +50,7 @@ Library
         Sound.Pulse.Monad.Internal
         Sound.Pulse.Monad.Internal.MainLoop
         Sound.Pulse.Monad.Internal.Connection
+        Sound.Pulse.Monad.Internal.Introspect
     Build-depends:
         base >= 4 && < 5,
         transformers >= 0.2 && < 0.4,
