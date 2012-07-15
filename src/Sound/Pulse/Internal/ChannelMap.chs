@@ -39,11 +39,12 @@ data ChannelMap = ChannelMap [ChannelPosition]
 instance Storable ChannelMap where
     sizeOf _ = {#sizeof pa_channel_map #}
     alignment _ = {#alignof pa_channel_map #}
-    peek p = do 
+    peek p = do
         channelNum <- liftM cIntConv ({#get pa_channel_map->channels #} p)
-        mapPtr <- ({#get pa_channel_map->map #} p) 
-        posList <- peekArray channelNum mapPtr
-        return $ ChannelMap []
+        mapPtr <- ({#get pa_channel_map->map #} p)
+        cPosList <- (peekArray channelNum mapPtr)
+        let posList = fmap cToEnum cPosList
+        return $ ChannelMap posList
 
     poke p x = return ()
 

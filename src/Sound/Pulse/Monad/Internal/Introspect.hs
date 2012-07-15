@@ -187,6 +187,37 @@ moveHelper moveByName moveByIndex ctx target identifier  = mask_ $ bracket
         return isSuccessful
 
 
+
+type ProfileSetterByIndex a = RawContextPtr -> Int -> String -> FunPtr (RawContextSuccessCallback a) -> UserData a -> IO (RawOperationPtr)
+type ProfileSetterByName a = RawContextPtr -> String -> String -> FunPtr (RawContextSuccessCallback a) -> UserData a -> IO (RawOperationPtr)
+
+setSinkPort :: Context -> String -> Either String Int -> IO Bool
+setSinkPort = setProfileHelper contextSetSinkPortByName contextSetSinkPortByIndex
+
+setSourcePort :: Context -> String -> Either String Int -> IO Bool
+setSourcePort = setProfileHelper contextSetSourcePortByName contextSetSourcePortByIndex
+
+setCardProfile :: Context -> String -> Either String Int -> IO Bool
+setCardProfile = setProfileHelper  contextSetCardProfileByName contextSetCardProfileByIndex
+
+
+setProfileHelper :: ProfileSetterByName (TVar Bool) -> ProfileSetterByIndex (TVar Bool) -> Context -> String -> Either String Int -> IO Bool
+setProfileHelper setterByName setterByIndex ctx target identifier  = mask_ $ bracket
+    (do
+        mon <- newTVarIO False
+        monPtr <- newStablePtr mon
+        return (mon, monPtr))
+    (freeStablePtr . snd)
+    $ \(mon, monPtr) -> do
+        let rawCtxPtr = ctxRaw ctx
+        case identifier of
+            Left name -> autoWait ctx =<< setterByName rawCtxPtr name target wrappedContextSuccessCallback (Just monPtr)
+            Right idx -> autoWait ctx =<< setterByIndex rawCtxPtr idx target wrappedContextSuccessCallback (Just monPtr)
+        isSuccessful <- readTVarIO mon
+        return isSuccessful
+
+
+
 type KillerByIndex a = RawContextPtr -> Int -> FunPtr (RawContextSuccessCallback a) -> UserData a -> IO (RawOperationPtr)
 
 killSinkInput :: Context -> Int -> IO Bool

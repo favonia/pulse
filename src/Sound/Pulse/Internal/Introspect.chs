@@ -64,6 +64,7 @@ data RawSinkInfo = RawSinkInfo
     , sinkIndex'RawSinkInfo :: Int
     , sinkDesc'RawSinkInfo :: Maybe String
   {-  , sinkChannelMap'RawSinkInfo :: ChannelMap -}
+    , sinkOwnerModule'RawSinkInfo :: Int
     , sinkMute'RawSinkInfo :: Bool
     , sinkLatency'RawSinkInfo :: MuSecond
     , sinkFlags'RawSinkInfo :: SinkFlags
@@ -75,17 +76,19 @@ data RawSinkInfo = RawSinkInfo
 instance Storable RawSinkInfo where
     sizeOf _ = {#sizeof pa_sink_info #}
     alignment _ = {#alignof pa_sink_info #}
-    peek p = RawSinkInfo
-        <$> (peekNullableUTF8CString =<< ({#get pa_sink_info->name #} p))
-        <*> (liftM cIntConv ({#get pa_sink_info->index #} p))
-        <*> (peekNullableUTF8CString =<< ({#get pa_sink_info->description #} p))
-        {-<*> (peekNullableUTF8CString =<< ({#get pa_sink_info->channel_map #} p)) -}
-        <*> (liftM cToBool ({#get pa_sink_info->mute #} p))
-        <*> (liftM cIntConv ({#get pa_sink_info->latency #} p))
-        <*> (liftM cToEnum ({#get pa_sink_info->flags #} p))
-        <*> (liftM cIntConv ({#get pa_sink_info->configured_latency #} p))
-        <*> (liftM cIntConv ({#get pa_sink_info->base_volume #} p))
-        <*> (liftM cToEnum ({#get pa_sink_info->state #} p))
+    peek p = do
+{-        channelMap <- (peek (plusPtr ({#get pa_sink_info->description #} p) 4) :: Ptr ChannelMap) -}
+        RawSinkInfo
+            <$> (peekNullableUTF8CString =<< ({#get pa_sink_info->name #} p))
+            <*> (liftM cIntConv ({#get pa_sink_info->index #} p))
+            <*> (peekNullableUTF8CString =<< ({#get pa_sink_info->description #} p))
+            <*> (liftM cIntConv ({#get pa_sink_info->owner_module #} p))
+            <*> (liftM cToBool ({#get pa_sink_info->mute #} p))
+            <*> (liftM cIntConv ({#get pa_sink_info->latency #} p))
+            <*> (liftM cToEnum ({#get pa_sink_info->flags #} p))
+            <*> (liftM cIntConv ({#get pa_sink_info->configured_latency #} p))
+            <*> (liftM cIntConv ({#get pa_sink_info->base_volume #} p))
+            <*> (liftM cToEnum ({#get pa_sink_info->state #} p))
     poke p x = do
         {#set pa_sink_info.name #} p undefined
         {#set pa_sink_info.index #} p undefined
