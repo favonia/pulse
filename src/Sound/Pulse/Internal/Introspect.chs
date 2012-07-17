@@ -29,11 +29,13 @@ import Control.Applicative ((<$>), (<*>))
 import Control.Monad (liftM)
 import Data.Word (Word64)
 import Sound.Pulse.Internal.C2HS
+import Sound.Pulse.PropList
 {#import Sound.Pulse.Internal.Def #}
 {#import Sound.Pulse.Internal.Volume #}
 {#import Sound.Pulse.Internal.Context #}
 {#import Sound.Pulse.Internal.Operation #}
 {#import Sound.Pulse.Internal.Format #}
+{#import Sound.Pulse.Internal.Sample #}
 {#import Sound.Pulse.Internal.ChannelMap #}
 
 #include <pulse/introspect.h>
@@ -63,36 +65,47 @@ data RawSinkInfo = RawSinkInfo
     { sinkName'RawSinkInfo :: Maybe String
     , sinkIndex'RawSinkInfo :: Int
     , sinkDesc'RawSinkInfo :: Maybe String
-  {-  , sinkChannelMap'RawSinkInfo :: ChannelMap -}
+    , sinkSampleSpec'RawSinkInfo :: SampleSpec
+    , sinkChannelMap'RawSinkInfo :: ChannelMap
     , sinkOwnerModule'RawSinkInfo :: Int
+    , sinkVolume'RawSinkInfo :: RawCVolume
     , sinkMute'RawSinkInfo :: Bool
     , sinkLatency'RawSinkInfo :: MuSecond
     , sinkFlags'RawSinkInfo :: SinkFlags
+    , sinkPropListPtr'RawSinkInfo :: RawPropListPtr
     , sinkConfiguredLatency'RawSinkInfo :: MuSecond
     , sinkBaseVolume'RawSinkInfo :: Volume
     , sinkState'RawSinkInfo :: SinkState
+    , sinkNumVolumeSteps'RawSinkInfo :: Int
+    , sinkCardIndex'RawSinkInfo :: Int
+    , sinkPorts'RawSinkInfo :: [RawSinkPortInfoPtr]
     }
 
 instance Storable RawSinkInfo where
     sizeOf _ = {#sizeof pa_sink_info #}
     alignment _ = {#alignof pa_sink_info #}
     peek p = do
-{-        channelMap <- (peek (plusPtr ({#get pa_sink_info->description #} p) 4) :: Ptr ChannelMap) -}
+        nPorts <- liftM cIntConv ({#get pa_sink_info->n_ports #} p)
+        portListPtr <- ({#get pa_sink_info->ports #} p)
         RawSinkInfo
             <$> (peekNullableUTF8CString =<< ({#get pa_sink_info->name #} p))
             <*> (liftM cIntConv ({#get pa_sink_info->index #} p))
             <*> (peekNullableUTF8CString =<< ({#get pa_sink_info->description #} p))
+            <*> peek ((p `plusPtr` (3 * {#alignof pa_sink_info #})) :: Ptr SampleSpec)
+            <*> peek ((p `plusPtr` (6 * {#alignof pa_sink_info #})) :: Ptr ChannelMap)
             <*> (liftM cIntConv ({#get pa_sink_info->owner_module #} p))
+            <*> peek ((p `plusPtr` 160) :: Ptr RawCVolume)
             <*> (liftM cToBool ({#get pa_sink_info->mute #} p))
             <*> (liftM cIntConv ({#get pa_sink_info->latency #} p))
             <*> (liftM cToEnum ({#get pa_sink_info->flags #} p))
+            <*> ({#get pa_sink_info->proplist #} p)
             <*> (liftM cIntConv ({#get pa_sink_info->configured_latency #} p))
             <*> (liftM cIntConv ({#get pa_sink_info->base_volume #} p))
             <*> (liftM cToEnum ({#get pa_sink_info->state #} p))
-    poke p x = do
-        {#set pa_sink_info.name #} p undefined
-        {#set pa_sink_info.index #} p undefined
-        {#set pa_sink_info.description #} p undefined
+            <*> (liftM cIntConv ({#get pa_sink_info->n_volume_steps #} p))
+            <*> (liftM cIntConv ({#get pa_sink_info->card #} p))
+            <*> ((peekArray nPorts portListPtr))
+    poke p x = return ()
 
 {#pointer *sink_info as RawSinkInfoPtr -> RawSinkInfo #}
 
