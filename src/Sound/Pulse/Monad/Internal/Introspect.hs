@@ -1,9 +1,10 @@
 {-# LANGUAGE CPP #-}
 #if __GLASGOW_HASKELL__ >= 702
-{-# LANGUAGE Safe #-}
+{-# LANGUAGE Trustworthy #-}
 #endif
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE ForeignFunctionInterface #-}
+{-# LANGUAGE TemplateHaskell #-}
 {- |
 Module      :  Sound.Pulse.Monad.Internal.Connection
 Copyright   :  (c) MnO2
@@ -24,9 +25,9 @@ import Control.Exception
 import Data.Foldable (forM_)
 import Data.Typeable
 #if __GLASGOW_HASKELL__ >= 702
-import Foreign.Safe hiding (void)
+import Foreign.Safe
 #else
-import Foreign hiding (void)
+import Foreign
 #endif
 
 import Sound.Pulse.Internal.C2HS
@@ -36,6 +37,7 @@ import Sound.Pulse.Internal.Introspect
 import Sound.Pulse.Internal.Volume
 
 import Sound.Pulse.Monad.Internal.Connection
+import Sound.Pulse.Monad.Internal.IntrospectTH
 
 
 -- | Callback for getting sink info
@@ -56,6 +58,10 @@ foreign export ccall "_pulse_private_sinkInfoCallback"
     sinkInfoCallback :: RawSinkInfoCallback a
 foreign import ccall "&_pulse_private_sinkInfoCallback"
     wrappedSinkInfoCallback :: FunPtr (RawSinkInfoCallback a)
+
+
+$(genGetInfoList)
+
 
 getSinkInfo :: Context -> IO [RawSinkInfo]
 getSinkInfo ctx = mask_ $ bracket
