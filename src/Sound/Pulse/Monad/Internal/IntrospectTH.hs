@@ -16,7 +16,6 @@ module Sound.Pulse.Monad.Internal.IntrospectTH where
 
 import Language.Haskell.TH
 
-
 data GetInfoFuncSpec = GetInfoFuncSpec { getInfoFuncName :: String
                                        , getInfoCallbackFuncName :: String
                                        , getInfoCallbackFuncType :: String
@@ -64,27 +63,52 @@ genGetInfoList =
 
 
 data GetInfoByTokenFuncSpec = GetInfoByTokenFuncSpec { getInfoByTokenFuncName :: String
+                                                     , getInfoByTokenCallbackFuncName :: String
+                                                     , getInfoByTokenCallbackFuncType :: String
+                                                     , foreignFunctionNameByToken :: String
+                                                     , wrappedFuncNameByToken :: String
                                                      }
 
-getInfoByTokenFuncSpecs :: [GetInfoByTokenFuncSpec]
-getInfoByTokenFuncSpecs =
-    [GetInfoByTokenFuncSpec "getSinkInputInfoByIndex"
-    ,GetInfoByTokenFuncSpec "getCardInfoByIndex"
-    ,GetInfoByTokenFuncSpec "getSourceInfoByIndex"
-    ,GetInfoByTokenFuncSpec "getSampleInfoByIndex"
-    ,GetInfoByTokenFuncSpec "getClientInfoByIndex"
-    ,GetInfoByTokenFuncSpec "getSourceOutputInfoByIndex"
-    ,GetInfoByTokenFuncSpec "getModuleInfoByIndex"
-    ,GetInfoByTokenFuncSpec "getSinkInputInfoByName"
-    ,GetInfoByTokenFuncSpec "getCardInfoByName"
-    ,GetInfoByTokenFuncSpec "getSourceInfoByName"
-    ,GetInfoByTokenFuncSpec "getSampleInfoByName"
+getInfoByIndexFuncSpecs :: [GetInfoByTokenFuncSpec]
+getInfoByIndexFuncSpecs =
+    [GetInfoByTokenFuncSpec "getSinkInfoByIndex" "sinkInfoCallback" "RawSinkInfoCallback" "contextGetSinkInfoByIndex" "wrappedSinkInfoCallback"
+    ,GetInfoByTokenFuncSpec "getCardInfoByIndex" "cardInfoCallback" "RawCardInfoCallback" "contextGetCardInfoByIndex" "wrappedCardInfoCallback"
+    ,GetInfoByTokenFuncSpec "getSourceInfoByIndex" "sourceInfoCallback" "RawSourceInfoCallback" "contextGetSourceInfoByIndex" "wrappedSourceInfoCallback"
+    ,GetInfoByTokenFuncSpec "getSampleInfoByIndex" "sampleInfoCallback" "RawSampleInfoCallback" "contextGetSampleInfoByIndex" "wrappedSampleInfoCallback"
+    ,GetInfoByTokenFuncSpec "getClientInfoByIndex" "clientInfoCallback" "RawClientInfoCallback" "contextGetClientInfo" "wrappedClientInfoCallback"
+    ,GetInfoByTokenFuncSpec "getSourceOutputInfoByIndex" "sourceOutputInfoCallback" "RawSourceOutputInfoCallback" "contextGetSourceOutputInfo" "wrappedSourceOutputInfoCallback"
+    ,GetInfoByTokenFuncSpec "getModuleInfoByIndex" "moduleInfoCallback" "RawModuleInfoCallback" "contextGetModuleInfo" "wrappedModuleInfoCallback"
     ]
 
-genGetInfoByToken :: Q [Dec] 
-genGetInfoByToken = 
-    return [FunD (mkName $ getInfoByTokenFuncName gifs) 
-                [Clause [VarP (mkName "ctx")] (NormalB $ VarE $ mkName "ctx") []
+getInfoByNameFuncSpecs :: [GetInfoByTokenFuncSpec]
+getInfoByNameFuncSpecs =
+    [GetInfoByTokenFuncSpec "getSinkInputInfoByName" "sinkInfoCallback" "RawSinkInfoCallback" "contextGetSinkInfoByName" "wrappedSinkInfoCallback"
+    ,GetInfoByTokenFuncSpec "getCardInfoByName" "cardInfoCallback" "RawCardInfoCallback" "contextGetCardInfoByName" "wrappedCardInfoCallback"
+    ,GetInfoByTokenFuncSpec "getSourceInfoByName" "sourceInfoCallback" "RawSourceInfoCallback" "contextGetSourceInfoByName" "wrappedSourceInfoCallback"
+    ,GetInfoByTokenFuncSpec "getSampleInfoByName" "sampleInfoCallback" "RawSampleInfoCallback" "contextGetSampleInfoByName" "wrappedSampleInfoCallback"
+    ]
+
+
+{-getVariousInfoByIndex :: Context -> Int -> (RawContextPtr -> Int -> t -> Maybe (StablePtr (TVar [a])) -> IO RawOperationPtr) -> t -> IO a-}
+
+{-genGetVariousInfoByXXX = [d| getVariousInfoByIndex ctx idx foreignFunction haskellCallback = mask_ $ bracket (do mon <- newTVarIO []; monPtr <- newStablePtr mon; return (mon, monPtr)) (freeStablePtr . snd) (\(mon, monPtr) -> (let rawCtxPtr = ctxRaw ctx in do { op <- foreignFunction rawCtxPtr idx haskellCallback (Just monPtr); autoWait ctx op; rawVariousInfoList <- readTVarIO mon; return $ head rawVariousInfoList; }))-}
+                         {-|]-}
+
+
+genGetInfoByIndex :: Q [Dec]
+genGetInfoByIndex =
+    return $ [FunD (mkName $ getInfoByTokenFuncName gifs)
+                [Clause [VarP (mkName "ctx"), VarP (mkName "idx")] 
+                    (NormalB $ AppE (AppE (AppE (AppE (VarE (mkName "getVariousInfoByIndex")) (VarE (mkName "ctx"))) (VarE (mkName "idx"))) (VarE (mkName $ foreignFunctionNameByToken gifs))) (VarE (mkName $ wrappedFuncNameByToken gifs)))  []
                 ]
-           | gifs <- getInfoByTokenFuncSpecs
+           | gifs <- getInfoByIndexFuncSpecs
+           ]
+
+genGetInfoByName :: Q [Dec]
+genGetInfoByName =
+    return $ [FunD (mkName $ getInfoByTokenFuncName gifs)
+                [Clause [VarP (mkName "ctx"), VarP (mkName "idx")] 
+                    (NormalB $ AppE (AppE (AppE (AppE (VarE (mkName "getVariousInfoByName")) (VarE (mkName "ctx"))) (VarE (mkName "idx"))) (VarE (mkName $ foreignFunctionNameByToken gifs))) (VarE (mkName $ wrappedFuncNameByToken gifs)))  []
+                ]
+           | gifs <- getInfoByNameFuncSpecs
            ]

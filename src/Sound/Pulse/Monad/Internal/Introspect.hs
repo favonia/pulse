@@ -112,25 +112,35 @@ getVariousInfoList ctx foreignFunction haskellCallback = mask_ $ bracket
 
 $(genGetInfoList)
 
-
-variousInfoCallbackHelper rawCtxPtr rawServerInfoPtr monPtr' =
-    forM_ (castPtrToMaybeStable monPtr') $ \monPtr -> do
-        mon <- deRefStablePtr monPtr
-        currRawServerInfo <- peek rawServerInfoPtr
-        atomically $ writeTVar mon currRawServerInfo
-
+getVariousInfoByIndex :: Context -> Int -> (RawContextPtr -> Int -> t -> Maybe (StablePtr (TVar [a])) -> IO RawOperationPtr) -> t -> IO a
 getVariousInfoByIndex ctx idx foreignFunction haskellCallback = mask_ $ bracket
     (do
-        mon <- newTVarIO $ RawServerInfo Nothing Nothing Nothing Nothing Nothing Nothing
+        mon <- newTVarIO []
         monPtr <- newStablePtr mon
         return (mon, monPtr))
     (freeStablePtr . snd)
     $ \(mon, monPtr) -> do
         let rawCtxPtr = ctxRaw ctx
         autoWait ctx =<< foreignFunction rawCtxPtr idx haskellCallback (Just monPtr)
-        rawServerInfo <- readTVarIO mon
-        return rawServerInfo
+        rawVariousInfoList <- readTVarIO mon
+        return $ head rawVariousInfoList
 
+
+getVariousInfoByName :: Context -> String -> (RawContextPtr -> String -> t -> Maybe (StablePtr (TVar [a])) -> IO RawOperationPtr) -> t -> IO a
+getVariousInfoByName ctx idx foreignFunction haskellCallback = mask_ $ bracket
+    (do
+        mon <- newTVarIO []
+        monPtr <- newStablePtr mon
+        return (mon, monPtr))
+    (freeStablePtr . snd)
+    $ \(mon, monPtr) -> do
+        let rawCtxPtr = ctxRaw ctx
+        autoWait ctx =<< foreignFunction rawCtxPtr idx haskellCallback (Just monPtr)
+        rawVariousInfoList <- readTVarIO mon
+        return $ head rawVariousInfoList
+
+$(genGetInfoByIndex)
+$(genGetInfoByName)
 
 -- | Callback for getting sink info
 contextSuccessCallback :: RawContextSuccessCallback a
