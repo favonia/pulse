@@ -24,9 +24,7 @@ import Foreign.Safe
 #else
 import Foreign
 #endif
-import Foreign.C
 import Control.Applicative ((<$>), (<*>))
-import Control.Monad (liftM)
 import Sound.Pulse.Internal.C2HS
 
 #include <pulse/format.h>

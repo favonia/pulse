@@ -40,9 +40,52 @@ import Sound.Pulse.Monad.Internal.Connection
 import Sound.Pulse.Monad.Internal.IntrospectTH
 
 
--- | Callback for getting sink info
-sinkInfoCallback :: RawSinkInfoCallback a
-sinkInfoCallback rawCtxPtr rawSinkInfoPtr eol monPtr'
+$(genVariousInfoListCallback)
+
+
+-- | Ugly trick to create a static C wrapper.
+foreign export ccall "_pulse_private_sinkInfoCallback"
+    sinkInfoCallback :: RawSinkInfoCallback a
+foreign import ccall "&_pulse_private_sinkInfoCallback"
+    wrappedSinkInfoCallback :: FunPtr (RawSinkInfoCallback a)
+
+foreign export ccall "_pulse_private_sinkInputInfoCallback"
+    sinkInputInfoCallback :: RawSinkInputInfoCallback a
+foreign import ccall "&_pulse_private_sinkInputInfoCallback"
+    wrappedSinkInputInfoCallback :: FunPtr (RawSinkInputInfoCallback a)
+
+foreign export ccall "_pulse_private_cardInfoCallback"
+    cardInfoCallback :: RawCardInfoCallback a
+foreign import ccall "&_pulse_private_cardInfoCallback"
+    wrappedCardInfoCallback :: FunPtr (RawCardInfoCallback a)
+
+foreign export ccall "_pulse_private_clientInfoCallback"
+    clientInfoCallback :: RawClientInfoCallback a
+foreign import ccall "&_pulse_private_clientInfoCallback"
+    wrappedClientInfoCallback :: FunPtr (RawClientInfoCallback a)
+
+foreign export ccall "_pulse_private_sampleInfoCallback"
+    sampleInfoCallback :: RawSampleInfoCallback a
+foreign import ccall "&_pulse_private_sampleInfoCallback"
+    wrappedSampleInfoCallback :: FunPtr (RawSampleInfoCallback a)
+
+foreign export ccall "_pulse_private_sourceInfoCallback"
+    sourceInfoCallback :: RawSourceInfoCallback a
+foreign import ccall "&_pulse_private_sourceInfoCallback"
+    wrappedSourceInfoCallback :: FunPtr (RawSourceInfoCallback a)
+
+foreign export ccall "_pulse_private_sourceOutputInfoCallback"
+    sourceOutputInfoCallback :: RawSourceOutputInfoCallback a
+foreign import ccall "&_pulse_private_sourceOutputInfoCallback"
+    wrappedSourceOutputInfoCallback :: FunPtr (RawSourceOutputInfoCallback a)
+
+foreign export ccall "_pulse_private_moduleInfoCallback"
+    moduleInfoCallback :: RawModuleInfoCallback a
+foreign import ccall "&_pulse_private_moduleInfoCallback"
+    wrappedModuleInfoCallback :: FunPtr (RawModuleInfoCallback a)
+
+
+variousInfoListCallbackHelper rawCtxPtr rawSinkInfoPtr eol monPtr'
     | eol == 0 =
         forM_ (castPtrToMaybeStable monPtr') $ \monPtr -> do
             mon <- deRefStablePtr monPtr
@@ -53,18 +96,8 @@ sinkInfoCallback rawCtxPtr rawSinkInfoPtr eol monPtr'
         -- error, do nothing
         return ()
 
--- | Ugly trick to create a static C wrapper.
-foreign export ccall "_pulse_private_sinkInfoCallback"
-    sinkInfoCallback :: RawSinkInfoCallback a
-foreign import ccall "&_pulse_private_sinkInfoCallback"
-    wrappedSinkInfoCallback :: FunPtr (RawSinkInfoCallback a)
-
-
-$(genGetInfoList)
-
-
-getSinkInfo :: Context -> IO [RawSinkInfo]
-getSinkInfo ctx = mask_ $ bracket
+getVariousInfoList :: Context -> (RawContextPtr -> t -> Maybe (StablePtr (TVar [a])) -> IO RawOperationPtr) -> t -> IO [a]
+getVariousInfoList ctx foreignFunction haskellCallback = mask_ $ bracket
     (do
         mon <- newTVarIO []
         monPtr <- newStablePtr mon
@@ -72,9 +105,31 @@ getSinkInfo ctx = mask_ $ bracket
     (freeStablePtr . snd)
     $ \(mon, monPtr) -> do
         let rawCtxPtr = ctxRaw ctx
-        autoWait ctx =<< contextGetSinkInfoList rawCtxPtr wrappedSinkInfoCallback (Just monPtr)
-        rawSinkInfoList <- readTVarIO mon
-        return rawSinkInfoList
+        autoWait ctx =<< foreignFunction rawCtxPtr haskellCallback (Just monPtr)
+        rawVariousInfoList <- readTVarIO mon
+        return rawVariousInfoList
+
+
+$(genGetInfoList)
+
+
+variousInfoCallbackHelper rawCtxPtr rawServerInfoPtr monPtr' =
+    forM_ (castPtrToMaybeStable monPtr') $ \monPtr -> do
+        mon <- deRefStablePtr monPtr
+        currRawServerInfo <- peek rawServerInfoPtr
+        atomically $ writeTVar mon currRawServerInfo
+
+getVariousInfoByIndex ctx idx foreignFunction haskellCallback = mask_ $ bracket
+    (do
+        mon <- newTVarIO $ RawServerInfo Nothing Nothing Nothing Nothing Nothing Nothing
+        monPtr <- newStablePtr mon
+        return (mon, monPtr))
+    (freeStablePtr . snd)
+    $ \(mon, monPtr) -> do
+        let rawCtxPtr = ctxRaw ctx
+        autoWait ctx =<< foreignFunction rawCtxPtr idx haskellCallback (Just monPtr)
+        rawServerInfo <- readTVarIO mon
+        return rawServerInfo
 
 
 -- | Callback for getting sink info
@@ -247,39 +302,6 @@ killHelper setterByIndex ctx idx = mask_ $ bracket
         autoWait ctx =<< setterByIndex rawCtxPtr idx wrappedContextSuccessCallback (Just monPtr)
         isSuccessful <- readTVarIO mon
         return isSuccessful
-
--- | Callback for getting source info
-sourceInfoCallback :: RawSourceInfoCallback a
-sourceInfoCallback rawCtxPtr rawSourceInfoPtr eol monPtr'
-    | eol == 0 =
-        forM_ (castPtrToMaybeStable monPtr') $ \monPtr -> do
-            mon <- deRefStablePtr monPtr
-            rawSourceInfoList  <- readTVarIO mon
-            currRawSourceInfo <- peek rawSourceInfoPtr
-            atomically $ writeTVar mon (currRawSourceInfo:rawSourceInfoList)
-    | otherwise =
-        -- error, do nothing
-        return ()
-
--- | Ugly trick to create a static C wrapper.
-foreign export ccall "_pulse_private_sourceInfoCallback"
-    sourceInfoCallback :: RawSourceInfoCallback a
-foreign import ccall "&_pulse_private_sourceInfoCallback"
-    wrappedSourceInfoCallback :: FunPtr (RawSourceInfoCallback a)
-
-
-getSourceInfo :: Context -> IO [RawSourceInfo]
-getSourceInfo ctx = mask_ $ bracket
-    (do
-        mon <- newTVarIO []
-        monPtr <- newStablePtr mon
-        return (mon, monPtr))
-    (freeStablePtr . snd)
-    $ \(mon, monPtr) -> do
-        let rawCtxPtr = ctxRaw ctx
-        autoWait ctx =<< contextGetSourceInfoList rawCtxPtr wrappedSourceInfoCallback (Just monPtr)
-        rawSourceInfoList <- readTVarIO mon
-        return rawSourceInfoList
 
 
 -- | Callback for getting source info

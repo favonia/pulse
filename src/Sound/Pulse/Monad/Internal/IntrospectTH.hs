@@ -18,22 +18,46 @@ import Language.Haskell.TH
 
 
 data GetInfoFuncSpec = GetInfoFuncSpec { getInfoFuncName :: String
+                                       , getInfoCallbackFuncName :: String
+                                       , getInfoCallbackFuncType :: String
+                                       , foreignFunctionName :: String
+                                       , wrappedFuncName :: String
                                        }
 
 getInfoFuncSpecs :: [GetInfoFuncSpec]
 getInfoFuncSpecs =
-    [GetInfoFuncSpec "getSinkInputInfoList"
-    ,GetInfoFuncSpec "getCardInfoList"
-    ,GetInfoFuncSpec "getClientInfoList"
-    ,GetInfoFuncSpec "getSampleInfoList"
-    ,GetInfoFuncSpec "getSourceOutputInfoList"
-    ,GetInfoFuncSpec "getModuleInfoList"
+    [GetInfoFuncSpec "getSinkInfoList" "sinkInfoCallback" "RawSinkInfoCallback" "contextGetSinkInfoList" "wrappedSinkInfoCallback"
+    ,GetInfoFuncSpec "getSinkInputInfoList" "sinkInputInfoCallback" "RawSinkInputInfoCallback" "contextGetSinkInputInfoList" "wrappedSinkInputInfoCallback"
+    ,GetInfoFuncSpec "getCardInfoList" "cardInfoCallback" "RawCardInfoCallback" "contextGetCardInfoList" "wrappedCardInfoCallback"
+    ,GetInfoFuncSpec "getClientInfoList" "clientInfoCallback" "RawClientInfoCallback" "contextGetClientInfoList" "wrappedClientInfoCallback"
+    ,GetInfoFuncSpec "getSampleInfoList" "sampleInfoCallback" "RawSampleInfoCallback" "contextGetSampleInfoList" "wrappedSampleInfoCallback"
+    ,GetInfoFuncSpec "getSourceInfoList" "sourceInfoCallback" "RawSourceInfoCallback" "contextGetSourceInfoList" "wrappedSourceInfoCallback"
+    ,GetInfoFuncSpec "getSourceOutputInfoList" "sourceOutputInfoCallback" "RawSourceOutputInfoCallback" "contextGetSourceOutputInfoList" "wrappedSourceOutputInfoCallback"
+    ,GetInfoFuncSpec "getModuleInfoList" "moduleInfoCallback" "RawModuleInfoCallback" "contextGetModuleInfoList" "wrappedModuleInfoCallback"
     ]
 
-genGetInfoList :: Q [Dec] 
-genGetInfoList = 
-    return [FunD (mkName $ getInfoFuncName gifs) 
-                [Clause [VarP (mkName "ctx")] (NormalB $ VarE $ mkName "ctx") []
+
+genVariousInfoListCallback :: Q [Dec] 
+genVariousInfoListCallback =
+    return $ 
+           [SigD (mkName $ getInfoCallbackFuncName gifs) 
+                 (ForallT [PlainTV $ mkName "a"] [] 
+                    (AppT (ConT $ mkName $ getInfoCallbackFuncType gifs) (VarT $ mkName $ "a")))
+           | gifs <- getInfoFuncSpecs 
+           ] ++
+           [
+            FunD (mkName $ getInfoCallbackFuncName gifs)
+                [Clause [] (NormalB $ VarE $ mkName "variousInfoListCallbackHelper") []
+                ]
+           | gifs <- getInfoFuncSpecs
+           ]
+
+
+genGetInfoList :: Q [Dec]
+genGetInfoList =
+    return $ [FunD (mkName $ getInfoFuncName gifs)
+                [Clause [VarP (mkName "ctx")] 
+                    (NormalB $ AppE (AppE (AppE (VarE (mkName "getVariousInfoList")) (VarE (mkName "ctx"))) (VarE (mkName $ foreignFunctionName gifs))) (VarE (mkName $ wrappedFuncName gifs)))  []
                 ]
            | gifs <- getInfoFuncSpecs
            ]
