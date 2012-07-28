@@ -36,13 +36,13 @@ getInfoFuncSpecs =
     ]
 
 
-genVariousInfoListCallback :: Q [Dec] 
+genVariousInfoListCallback :: Q [Dec]
 genVariousInfoListCallback =
-    return $ 
-           [SigD (mkName $ getInfoCallbackFuncName gifs) 
-                 (ForallT [PlainTV $ mkName "a"] [] 
+    return $
+           [SigD (mkName $ getInfoCallbackFuncName gifs)
+                 (ForallT [PlainTV $ mkName "a"] []
                     (AppT (ConT $ mkName $ getInfoCallbackFuncType gifs) (VarT $ mkName $ "a")))
-           | gifs <- getInfoFuncSpecs 
+           | gifs <- getInfoFuncSpecs
            ] ++
            [
             FunD (mkName $ getInfoCallbackFuncName gifs)
@@ -55,7 +55,7 @@ genVariousInfoListCallback =
 genGetInfoList :: Q [Dec]
 genGetInfoList =
     return $ [FunD (mkName $ getInfoFuncName gifs)
-                [Clause [VarP (mkName "ctx")] 
+                [Clause [VarP (mkName "ctx")]
                     (NormalB $ AppE (AppE (AppE (VarE (mkName "getVariousInfoList")) (VarE (mkName "ctx"))) (VarE (mkName $ foreignFunctionName gifs))) (VarE (mkName $ wrappedFuncName gifs)))  []
                 ]
            | gifs <- getInfoFuncSpecs
@@ -98,7 +98,7 @@ getInfoByNameFuncSpecs =
 genGetInfoByIndex :: Q [Dec]
 genGetInfoByIndex =
     return $ [FunD (mkName $ getInfoByTokenFuncName gifs)
-                [Clause [VarP (mkName "ctx"), VarP (mkName "idx")] 
+                [Clause [VarP (mkName "ctx"), VarP (mkName "idx")]
                     (NormalB $ AppE (AppE (AppE (AppE (VarE (mkName "getVariousInfoByIndex")) (VarE (mkName "ctx"))) (VarE (mkName "idx"))) (VarE (mkName $ foreignFunctionNameByToken gifs))) (VarE (mkName $ wrappedFuncNameByToken gifs)))  []
                 ]
            | gifs <- getInfoByIndexFuncSpecs
@@ -107,7 +107,7 @@ genGetInfoByIndex =
 genGetInfoByName :: Q [Dec]
 genGetInfoByName =
     return $ [FunD (mkName $ getInfoByTokenFuncName gifs)
-                [Clause [VarP (mkName "ctx"), VarP (mkName "idx")] 
+                [Clause [VarP (mkName "ctx"), VarP (mkName "idx")]
                     (NormalB $ AppE (AppE (AppE (AppE (VarE (mkName "getVariousInfoByName")) (VarE (mkName "ctx"))) (VarE (mkName "idx"))) (VarE (mkName $ foreignFunctionNameByToken gifs))) (VarE (mkName $ wrappedFuncNameByToken gifs)))  []
                 ]
            | gifs <- getInfoByNameFuncSpecs
