@@ -7,9 +7,7 @@ Pulse. If not, see <http://www.opensource.org/licenses/BSD-3-clause>.
 -}
 
 {-# LANGUAGE CPP #-}
-#if __GLASGOW_HASKELL__ >= 702
 {-# LANGUAGE Safe #-}
-#endif
 {-# LANGUAGE ForeignFunctionInterface, EmptyDataDecls #-}
 
 {#context prefix = "pa"#}
@@ -32,11 +30,7 @@ module Sound.Pulse.Internal.PropList
 
 import Control.Exception (throwIO, ErrorCall(..))
 import Data.ByteString (ByteString)
-#if __GLASGOW_HASKELL__ >= 702
 import Foreign.Safe
-#else
-import Foreign
-#endif
 import Foreign.C
 
 import Sound.Pulse.Internal.C2HS

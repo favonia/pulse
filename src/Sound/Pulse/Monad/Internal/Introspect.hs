@@ -1,7 +1,5 @@
 {-# LANGUAGE CPP #-}
-#if __GLASGOW_HASKELL__ >= 702
 {-# LANGUAGE Trustworthy #-}
-#endif
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE ForeignFunctionInterface #-}
 {-# LANGUAGE TemplateHaskell #-}
@@ -19,16 +17,13 @@ High-level interface for context.
 
 module Sound.Pulse.Monad.Internal.Introspect where
 
-import Control.Monad hiding (forM_)
+-- import Control.Monad hiding (forM_)
 import Control.Concurrent.STM
 import Control.Exception
 import Data.Foldable (forM_)
-import Data.Typeable
-#if __GLASGOW_HASKELL__ >= 702
+-- import Data.Typeable
 import Foreign.Safe
-#else
-import Foreign
-#endif
+import Foreign.C.Types
 
 import Sound.Pulse.Internal.C2HS
 import Sound.Pulse.Internal.Context

@@ -36,9 +36,7 @@ Manuel M T Chakravarty, released under BSD-like license.
 --  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 {-# LANGUAGE CPP #-}
-#if __GLASGOW_HASKELL__ >= 702
 {-# LANGUAGE Safe #-}
-#endif
 
 {- |
 C2HS marshallers
@@ -80,18 +78,10 @@ module Sound.Pulse.Internal.C2HS
 where
 
 import Control.Monad
-#if __GLASGOW_HASKELL__ >= 702
 import Foreign.Safe
-#else
-import Foreign
-#endif
 import Foreign.C
-#if __GLASGOW_HASKELL__ >= 702
 import qualified GHC.Foreign as GHC
 import GHC.IO.Encoding (utf8)
-#else
-import Codec.Binary.UTF8.String (encode, decode)
-#endif
 import Data.ByteString (ByteString, useAsCStringLen, packCStringLen)
 
 cIntConv :: (Integral a, Integral b) => a -> b
@@ -118,7 +108,7 @@ cToEnum = toEnum . cIntConv
 cFromEnum :: (Enum e, Integral i) => e -> i
 cFromEnum = cIntConv . fromEnum
 
-combineBitMasks :: (Enum a, Bits b) => [a] -> b
+combineBitMasks :: (Enum a, Bits b, Num b) => [a] -> b
 combineBitMasks = foldl (.|.) 0 . map (fromIntegral . fromEnum)
 
 nullable :: (Ptr a -> b) -> Ptr a -> Maybe b
@@ -132,7 +122,6 @@ nullableM peeker ptr = if ptr == nullPtr
 toMaybePtr :: Ptr a -> Maybe (Ptr a)
 toMaybePtr = nullable id
 
-#if __GLASGOW_HASKELL__ >= 702
 peekUTF8CString :: CString -> IO String
 peekUTF8CString = GHC.peekCString utf8
 
@@ -141,19 +130,6 @@ withUTF8CString = GHC.withCString utf8
 
 withUTF8CStringLen :: String -> (CStringLen -> IO a) -> IO a
 withUTF8CStringLen = GHC.withCStringLen utf8
-#else
-nul :: CChar
-nul = 0
-
-peekUTF8CString :: CString -> IO String
-peekUTF8CString = liftM (decode . map cIntConv) . peekArray0 nul
-
-withUTF8CString :: String -> (CString -> IO a) -> IO a
-withUTF8CString = withArray0 nul . map cIntConv . encode
-
-withUTF8CStringLen :: String -> (CStringLen -> IO a) -> IO a
-withUTF8CStringLen str = withArrayLen (map cIntConv . encode $ str) . flip . curry
-#endif
 
 peekNullableUTF8CString :: CString -> IO (Maybe String)
 peekNullableUTF8CString = nullableM peekUTF8CString

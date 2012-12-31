@@ -7,9 +7,7 @@ Pulse. If not, see <http://www.opensource.org/licenses/BSD-3-clause>.
 -}
 
 {-# LANGUAGE CPP #-}
-#if __GLASGOW_HASKELL__ >= 702
 {-# LANGUAGE Trustworthy #-}
-#endif
 {-# LANGUAGE GADTs, TypeFamilies #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE TemplateHaskell #-}
@@ -48,11 +46,7 @@ import System.IO (fixIO)
 import Control.Monad hiding (mapM_)
 import Control.Monad.CatchIO (MonadCatchIO(..), bracket, bracketOnError)
 import Control.Monad.IO.Class (MonadIO(..))
-#if __GLASGOW_HASKELL__ >= 702
 import Foreign.Safe
-#else
-import Foreign
-#endif
 import Data.Dependent.Sum
 import Data.Dependent.Map
 

@@ -7,9 +7,7 @@ Pulse. If not, see <http://www.opensource.org/licenses/BSD-3-clause>.
 -}
 
 {-# LANGUAGE CPP #-}
-#if __GLASGOW_HASKELL__ >= 702
 {-# LANGUAGE Safe #-}
-#endif
 
 {- |
 This module provides the monadic interface.

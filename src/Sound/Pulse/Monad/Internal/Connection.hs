@@ -7,9 +7,7 @@ Pulse. If not, see <http://www.opensource.org/licenses/BSD-3-clause>.
 -}
 
 {-# LANGUAGE CPP #-}
-#if __GLASGOW_HASKELL__ >= 702
 {-# LANGUAGE Safe #-}
-#endif
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE ForeignFunctionInterface #-}
 
@@ -41,11 +39,7 @@ import Data.Foldable (forM_)
 import Control.Concurrent.STM
 import Control.Exception
 import Data.Typeable (Typeable)
-#if __GLASGOW_HASKELL__ >= 702
 import Foreign.Safe hiding (void)
-#else
-import Foreign hiding (void)
-#endif
 import Data.String (IsString(..))
 
 import Sound.Pulse.Internal.Def

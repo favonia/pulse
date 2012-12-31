@@ -7,9 +7,7 @@ Pulse. If not, see <http://www.opensource.org/licenses/BSD-3-clause>.
 -}
 
 {-# LANGUAGE CPP #-}
-#if __GLASGOW_HASKELL__ >= 702
 {-# LANGUAGE Safe #-}
-#endif
 {-# LANGUAGE ForeignFunctionInterface, EmptyDataDecls #-}
 
 {#context prefix = "pa"#}
@@ -19,11 +17,7 @@ This module provides the bindings to @channelmap.h@.
 -}
 module Sound.Pulse.Internal.ChannelMap where
 
-#if __GLASGOW_HASKELL__ >= 702
 import Foreign.Safe
-#else
-import Foreign
-#endif
 import Foreign.C
 import Control.Monad (liftM)
 import Sound.Pulse.Internal.C2HS
