@@ -1,6 +1,12 @@
 Name:                pulse
 Version:             0.0.0.0
 Synopsis:            Haskell binding to PulseAudio
+Description:
+    /Overview/
+    .
+    The Pulse library contains a simple and easy-to-use interface to pulseaudio C library.
+    Importing "Sound.Pulse.Monad" module would offer you a monadic operating interface.
+    .
 Homepage:            http://favonia.github.com/pulse/
 License:             BSD3
 License-file:        LICENSE
@@ -17,6 +23,7 @@ Source-Repository    head
     Type: git
     Location: git@github.com:favonia/pulse.git
 
+------------------------------------------------------------------------------
 Library
     Default-language:
         Haskell2010
@@ -53,27 +60,37 @@ Library
         Sound.Pulse.Monad.Internal.Introspect
         Sound.Pulse.Monad.Internal.IntrospectTH
     Build-depends:
-        base >= 4 && < 5,
-        transformers >= 0.2 && < 0.4,
-        MonadCatchIO-transformers >= 0.2 && < 0.4,
-        stm == 2.4.*,
-        template-haskell >= 2.7 && < 3,
-        dependent-map == 0.1.*,
-        dependent-sum == 0.2.*,
-        utf8-string == 0.3.*,
-        bytestring == 0.10.*
+        base                       >= 4   && < 5,
+        transformers               >= 0.2 && < 0.4,
+        MonadCatchIO-transformers  >= 0.2 && < 0.4,
+        stm                        == 2.4.*,
+        -- TH 2.7.* is not buildable under GHC 7.2
+        template-haskell           >= 2.7 && < 3,
+        dependent-map              == 0.1.*,
+        dependent-sum              == 0.2.*,
+        utf8-string                == 0.3.*,
+        bytestring                 == 0.9.*
     Build-tools:
         c2hs, hsc2hs
 
+
+------------------------------------------------------------------------------
 Test-suite test-pulse
     Default-language: Haskell2010
     Type: exitcode-stdio-1.0
     Ghc-options: -threaded
     Hs-source-dirs: tests
-    Build-depends:
-        base >= 4 && < 5,
-        transformers >= 0.2 && < 0.4,
-        QuickCheck >= 2.4 && < 3,
-        pulse
     Main-is:
-        Test.hs
+        TestSuite.hs
+    Other-modules:
+        Sound.Pulse.Tests.Monad
+    Build-depends:
+        base                       >= 4         && < 5,
+        transformers               >= 0.2       && < 0.4,
+        pulse,
+        HUnit                      >= 1.2       && < 2,
+        QuickCheck                 >= 2.4       && < 3,
+        test-framework             >= 0.6       && <0.7,
+        test-framework-hunit       >= 0.2.7     && <0.3,
+        test-framework-quickcheck2 >= 0.2.12.1  && <0.3
+
