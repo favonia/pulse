@@ -26,7 +26,7 @@ import Data.Dependent.Sum
 import Data.GADT.Compare
 import Data.GADT.Show
 
-import Language.Haskell.TH
+import Language.Haskell.TH.Syntax hiding (Role)
 import Data.Typeable (Typeable)
 
 -- | Specification of a property.

@@ -44,7 +44,7 @@ import Prelude hiding (mapM_)
 import Data.Foldable (mapM_)
 import System.IO (fixIO)
 import Control.Monad hiding (mapM_)
-import Control.Monad.CatchIO (MonadCatchIO(..), bracket, bracketOnError)
+import Control.Monad.Catch (MonadMask, bracket, bracketOnError)
 import Control.Monad.IO.Class (MonadIO(..))
 import Foreign.Safe
 import Data.Dependent.Sum
@@ -89,7 +89,7 @@ peekRawPropList raw = liftIO $ with nullPtr $ \state -> do
     return $ fromList pl
 
 -- | Parse a string by the built-in parser @pa_proplist_from_string@.
-parseString :: MonadCatchIO m => String -> m PropList
+parseString :: (MonadMask m, MonadIO m) => String -> m PropList
 parseString strRep = bracket
     (liftIO $ proplistFromString strRep)
     (mapM_ $ liftIO . proplistFree)
@@ -98,7 +98,7 @@ parseString strRep = bracket
         Just p -> peekRawPropList p)
 
 -- | Marshal a 'PropList' into raw representation.
-withRawPropList :: MonadCatchIO m => PropList -> (RawPropListPtr -> m a) -> m a
+withRawPropList :: (MonadMask m, MonadIO m) => PropList -> (RawPropListPtr -> m a) -> m a
 withRawPropList pl = bracket (newRawPropList pl) freeRawPropList
 
 -- | Alloc a raw 'PropList'.

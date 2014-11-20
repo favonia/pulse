@@ -32,7 +32,7 @@ Library
     Hs-source-dirs:
         src
     Pkgconfig-depends:
-        libpulse >= 1.0 && < 4.0
+        libpulse >= 5.0 && < 6.0
     Exposed-modules:
         Sound.Pulse
         Sound.Pulse.Monad
@@ -61,8 +61,8 @@ Library
         Sound.Pulse.Monad.Internal.IntrospectTH
     Build-depends:
         base                       >= 4   && < 5,
-        transformers               >= 0.2 && < 0.4,
-        MonadCatchIO-transformers  >= 0.2 && < 0.4,
+        exceptions                 >= 0.6 && < 0.8,
+        transformers               >= 0.4 && < 0.6,
         stm                        >= 2.4 && < 2.6,
         template-haskell           >= 2.7 && < 3,
         dependent-map              >= 0.1 && < 0.3,
@@ -85,12 +85,12 @@ Test-suite testsuite
         Sound.Pulse.Tests.Monad
     Build-depends:
         base                       >= 4         && < 5,
-        transformers               >= 0.2       && < 0.4,
+        transformers               >= 0.4       && < 0.6,
         pulse,
         HUnit                      >= 1.2       && < 2,
         QuickCheck                 >= 2.4       && < 3,
-        test-framework             >= 0.6       && <0.9,
-        test-framework-hunit       >= 0.2.7     && <0.4,
-        test-framework-quickcheck2 >= 0.2.12.1  && <0.4
+        test-framework             >= 0.8       && <0.10,
+        test-framework-hunit       >= 0.3       && <0.5,
+        test-framework-quickcheck2 >= 0.3       && <0.5
     Ghc-options: -O2 -Wall -fhpc -fwarn-tabs
     Ghc-prof-options: -prof -auto-all

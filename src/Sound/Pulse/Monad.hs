@@ -26,12 +26,12 @@ module Sound.Pulse.Monad
 
 import Control.Monad.Trans.Reader (ReaderT(..))
 import Control.Monad.IO.Class (MonadIO(..))
-import Control.Monad.CatchIO (MonadCatchIO(..), bracket)
+import Control.Monad.Catch (MonadMask(..),bracket)
 
 import Sound.Pulse.Monad.Internal
 import Sound.Pulse.Monad.Internal.Connection
 import Sound.Pulse.Monad.Internal.Introspect
 
 -- | Run the 'PulseT'.
-runPulseT :: MonadCatchIO m => Config -> PulseT m n -> m n
+runPulseT :: (MonadMask m, MonadIO m) => Config -> PulseT m n -> m n
 runPulseT conf (PulseT (ReaderT userCode)) = bracket (liftIO $ newConn conf) (liftIO . freeConn) userCode
