@@ -2,4 +2,5 @@ language: haskell
 install:
     - sudo apt-get install libpulse-dev pulseaudio
     - dbus-launch pulseaudio --start
+    - cabal install c2hs
     - cabal install --enable-tests
